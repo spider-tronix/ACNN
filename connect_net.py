@@ -1,22 +1,20 @@
 import torch
 from torch.nn.modules.padding import ConstantPad3d
 
-
 class ConnectNet(torch.nn.Module):
     
-    def __init__(self, input_dim, n_filters, kernel_size, strides=1, padding='valid', device='cpu'):
+    def __init__(self, input_dim, kernel_size, strides=1, padding='valid', device='cpu'):
         """
         Parameters:
-            filters : the number of filters to be applied on the input image
+            input_dim : dimension of the tensor passed in forward function
             kernel_size : tuple, dimension of kernel/filter
             strides : an integer specifying the stride length
             padding : either 'valid' or 'same'. 'valid' refers to no padding.
                       'same' refers to padding the input such that the output has
                       the same length as the original input
+            device : device to perform calculations on
         """
-        super(ConnectNet, self).__init__()
         self.input_dim = input_dim
-        self.f = n_filters
         self.ks = kernel_size 
         self.s = strides
         self.padding = padding
@@ -40,16 +38,16 @@ class ConnectNet(torch.nn.Module):
         """
 
         assert(x.shape == self.input_dim)                    # assert right input
-        _, C_out, hf, wf = kernels.shape
+        C_out, _, hf, wf = kernels.shape
         x = self.pad_tensor(x)                               # pad input
-        x_col, h_out, w_out = im2col(x, hf, wf, self.s).t()  # transpose 
+        x_col, h_out, w_out = self.im2col(x, hf, wf, self.s)
+        x_col = x_col.t()
         x_col = x_col.to(self.device, dtype=torch.float)
-        x_col = x_col.requires_grad = True
+        x_col.requires_grad = True
         
         k_col = kernels.view(C_out, -1)                       # converted to 2d tensor 
         k_col = k_col.to(device=device, dtype=torch.float)    # to gpu
         k_col.requires_grad = True
-        
         x_out = torch.mm(k_col, x_col).view(C_out, h_out, w_out)   # convolution
         return x_out
    
@@ -66,7 +64,7 @@ class ConnectNet(torch.nn.Module):
             return pad(x)
         return x
 
-    def im2col(x, hf, wf ,stride):
+    def im2col(self, x, hf, wf ,stride):
 
         """
         Parameters:
@@ -87,6 +85,17 @@ class ConnectNet(torch.nn.Module):
         for i in range(h_out):
             for j in range(w_out):
                 patch = x[...,i*stride:i*stride+hf,j*stride:j*stride+wf]
-                x_col[i*w_out+j,:] = patch.view(-1)  #patch.reshape(-1)
+                x_col[i*w_out+j,:] = patch.reshape(-1)  #patch.reshape(-1)
         return x_col, h_out, w_out
         
+
+
+# ---------------------- TEST---------------------------#
+
+if __name__ == '__main__':
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    cnet = ConnectNet(input_dim=(2,3,3), kernel_size=(2,2), device=device)
+    input_img = torch.arange(18).reshape((2,3,3))   # input img
+    filters = torch.arange(24).reshape(3,2,2,2)     # input filters
+    y_pred = cnet.forward(input_img, filters)                  # img convolved with filters
+    print('Ouput is y_pred:\n', y_pred)
