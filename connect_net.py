@@ -1,8 +1,8 @@
 import torch
 from torch.nn.modules.padding import ConstantPad3d
 
+
 class ConnectNet(torch.nn.Module):
-    
     def __init__(self, input_dim, kernel_size, strides=1, padding='valid', device='cpu'):
         """
         Parameters:
@@ -14,8 +14,9 @@ class ConnectNet(torch.nn.Module):
                       the same length as the original input
             device : device to perform calculations on
         """
+        super(ConnectNet, self).__init__()
         self.input_dim = input_dim
-        self.ks = kernel_size 
+        self.ks = kernel_size
         self.s = strides
         self.padding = padding
         self.device = device
@@ -23,7 +24,7 @@ class ConnectNet(torch.nn.Module):
     def forward(self, x, kernels):
         """
         Parameters:
-            x : image tesnor from previous layer of "features" network,
+            x : image tensor from previous layer of "features" network,
                 of dimension (C, H, W)
             kernels : kernels(tensor) to convolve with x, of dimension (C_out, C_in, h_filter, w_filter)
         Returns:
@@ -37,20 +38,20 @@ class ConnectNet(torch.nn.Module):
             W_out = floor(W - w_filter + 2*padding) + 1
         """
 
-        assert(x.shape == self.input_dim)                    # assert right input
+        assert (x.shape == self.input_dim)  # assert right input
         C_out, _, hf, wf = kernels.shape
-        x = self.pad_tensor(x)                               # pad input
+        x = self.pad_tensor(x)  # pad input
         x_col, h_out, w_out = self.im2col(x, hf, wf, self.s)
         x_col = x_col.t()
         x_col = x_col.to(self.device, dtype=torch.float)
         x_col.requires_grad = True
-        
-        k_col = kernels.view(C_out, -1)                       # converted to 2d tensor 
-        k_col = k_col.to(device=device, dtype=torch.float)    # to gpu
+
+        k_col = kernels.view(C_out, -1)  # converted to 2d tensor
+        k_col = k_col.to(device=device, dtype=torch.float)  # to gpu
         k_col.requires_grad = True
-        x_out = torch.mm(k_col, x_col).view(C_out, h_out, w_out)   # convolution
+        x_out = torch.mm(k_col, x_col).view(C_out, h_out, w_out)  # convolution
         return x_out
-   
+
     def pad_tensor(self, x):
         """
         Parameters :
@@ -58,13 +59,13 @@ class ConnectNet(torch.nn.Module):
         Returns :
             padded tesnor
         """
-        if self.padding=='same':
-            pad_h, pad_w = int((self.ks[0]-1)/2), int((self.ks[1]-1)/2)
-            pad = ConstantPad3d((0, 0 ,pad_h, pad_h, pad_w, pad_w), value=0)
+        if self.padding == 'same':
+            pad_h, pad_w = int((self.ks[0] - 1) / 2), int((self.ks[1] - 1) / 2)
+            pad = ConstantPad3d((0, 0, pad_h, pad_h, pad_w, pad_w), value=0)
             return pad(x)
         return x
 
-    def im2col(self, x, hf, wf ,stride):
+    def im2col(self, x, hf, wf, stride):
 
         """
         Parameters:
@@ -77,25 +78,22 @@ class ConnectNet(torch.nn.Module):
                 h_out = (H-hf) // stride + 1, w_out = (W-wf) // stride + 1
         """
 
-        c,h,w = x.shape
-        h_out = (h-hf) // stride + 1
-        w_out = (w-wf) // stride + 1
-        x_col = torch.zeros(h_out*w_out,c*hf*wf)
+        c, h, w = x.shape
+        h_out = (h - hf) // stride + 1
+        w_out = (w - wf) // stride + 1
+        x_col = torch.zeros(h_out * w_out, c * hf * wf)
 
         for i in range(h_out):
             for j in range(w_out):
-                patch = x[...,i*stride:i*stride+hf,j*stride:j*stride+wf]
-                x_col[i*w_out+j,:] = patch.reshape(-1)  #patch.reshape(-1)
+                patch = x[..., i * stride:i * stride + hf, j * stride:j * stride + wf]
+                x_col[i * w_out + j, :] = patch.reshape(-1)  # patch.reshape(-1)
         return x_col, h_out, w_out
-        
 
-
-# ---------------------- TEST---------------------------#
 
 if __name__ == '__main__':
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    cnet = ConnectNet(input_dim=(2,3,3), kernel_size=(2,2), device=device)
-    input_img = torch.arange(18).reshape((2,3,3))   # input img
-    filters = torch.arange(24).reshape(3,2,2,2)     # input filters
-    y_pred = cnet.forward(input_img, filters)                  # img convolved with filters
+    cnet = ConnectNet(input_dim=(2, 3, 3), kernel_size=(2, 2), device=device)
+    input_img = torch.arange(18).reshape((2, 3, 3))  # input img
+    filters = torch.arange(24).reshape(3, 2, 2, 2)  # input filters
+    y_pred = cnet.forward(input_img, filters)  # img convolved with filters
     print('Ouput is y_pred:\n', y_pred)
