@@ -44,3 +44,21 @@ class ParallelNets(nn.Module):
                                   stride=stride,
                                   padding=padding,
                                   bias=False)
+        # self.dense = nn.Sequential(
+        #     nn.Linear()
+        # )
+
+    def forward(self, X, XX):
+        out1 = self.net1conv1(X)
+        out1 = self.net1conv2(out1)
+
+        out2 = self.net2conv1(XX)
+        out2 = self.net2conv2(out2)
+        out2 = self.net2conv3(out2)
+
+        with torch.no_grad():
+            self.junction.weight = nn.Parameter(out2)
+
+        out_junction = self.junction(out1)
+
+        return out_junction
