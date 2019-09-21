@@ -14,7 +14,7 @@ torch.manual_seed(0)
 # HyperParams and Others
 num_epochs = 3
 num_classes = 10
-batch_size = 100
+batch_size = 1
 learning_rate = 0.01
 
 model = Viba()
@@ -22,7 +22,7 @@ model = Viba()
 if __name__ == '__main__':
     # Loading Data
     data_loc = '/media/syzygianinfern0/Summore Data/Datasets'
-    t = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
+    t = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0,), (1,))])
     train_dataset = torchvision.datasets.MNIST(root=data_loc, train=True, transform=t, download=True)
     test_dataset = torchvision.datasets.MNIST(root=data_loc, train=False, transform=t)
     train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
@@ -40,7 +40,7 @@ if __name__ == '__main__':
     for epoch in range(num_epochs):
         for i, data in enumerate(train_loader):
             images, labels = data[0].to(device), data[1].to(device)
-            output = model(images, images)
+            output = model(images)
             loss = criterion(output, labels)
             loss_list.append(loss.item())
             optimizer.zero_grad()
