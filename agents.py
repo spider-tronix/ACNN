@@ -7,7 +7,7 @@ class Viba(nn.Module):
     """Branches of the Network"""
 
     def __init__(self, net1_channels=[1, 10, 20],
-                 net2_channels=[1, 10, 20, 30],
+                 net2_channels=[1, 50, 100, 600],
                  kernel_size=5, stride=1, padding=2,
                  junction_channels=30):
         """
@@ -40,15 +40,12 @@ class Viba(nn.Module):
                       kernel_size=kernel_size, stride=stride, padding=padding),
             nn.ReLU()
         )
-        self.junction = nn.Conv3d(in_channels=net1_channels[-1],
+        self.junction = nn.Conv2d(in_channels=net1_channels[-1],
                                   out_channels=junction_channels,
                                   kernel_size=28,
                                   stride=stride,
                                   padding=padding,
                                   bias=False)
-        # self.dense = nn.Sequential(
-        #     nn.Linear()
-        # )
 
     def forward(self, X, XX):
         out1 = self.net1conv1(X)
@@ -59,9 +56,7 @@ class Viba(nn.Module):
         out2 = self.net2conv3(out2)
 
         with torch.no_grad():
-            # noinspection PyArgumentList
-            # self.junction.weight = nn.Parameter(torch.transpose(torch.repeat_interleave(out2, 20, 0),1, 0))
-            self.junction.weight = nn.Parameter(out2[:, :, None, :, :].repeat(1, 1, 20, 1, 1))
+            self.junction.weight = nn.Parameter(out2.reshape(30, 20, 28, 28))
 
         out_junction = self.junction(out1)
 
