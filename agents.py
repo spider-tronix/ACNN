@@ -37,17 +37,19 @@ class Viba(nn.Module):
             nn.ReLU()
         )
 
+        self.fc = nn.Sequential(
+            nn.Linear(4096, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 256),
+            nn.ReLU(),
+            nn.Linear(256, 64),
+            nn.ReLU(),
+            nn.Linear(64, 10)
+        )
 
-        # self.junction = nn.Conv2d(in_channels=net1_channels[-1],
-        #                           out_channels=junction_channels,
-        #                           kernel_size=28,
-        #                           stride=stride,
-        #                           padding=padding,
-        #                           bias=False)
-
-    def forward(self, X):
+    def forward(self, X, XX):
         out1 = self.net1(X)
-        out2 = self.net2(X)
+        out2 = self.net2(XX)
 
         out2 = torch.squeeze(out2)[:, None, :, :]
         out2 = out2.repeat(1, 32, 1, 1)
@@ -55,5 +57,6 @@ class Viba(nn.Module):
         out3 = F.conv2d(out1, out2)
 
         out3 = out3.reshape(out3.size(0), -1)
+        out3 = F.softmax(self.fc(out3))
 
         return out3

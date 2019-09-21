@@ -22,7 +22,7 @@ model = Viba()
 if __name__ == '__main__':
     # Loading Data
     data_loc = '/media/syzygianinfern0/Summore Data/Datasets'
-    t = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0,), (1,))])
+    t = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
     train_dataset = torchvision.datasets.MNIST(root=data_loc, train=True, transform=t, download=True)
     test_dataset = torchvision.datasets.MNIST(root=data_loc, train=False, transform=t)
     train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
