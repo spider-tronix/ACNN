@@ -6,7 +6,6 @@ import torch.nn.functional as F
 class BaseModel(nn.Module):
     def __init__(self):
         super(BaseModel, self).__init__()
-<<<<<<< HEAD:Benchmark/base_model.py
         self.conv1 = nn.Conv2d(1, 16, 3)
         self.conv2 = nn.Conv2d(16, 64, 3)
         self.fc1 = nn.Linear(64*24*24, 1024)
