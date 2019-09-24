@@ -18,8 +18,7 @@ class Baseline(nn.Module):
         self.fc = nn.Sequential(
             nn.Linear(40*16*16, 64),
             nn.ReLU(),
-            nn.Linear(64, 10),
-            # nn.Softmax()
+            nn.Linear(64, 10)
         )
 
     def forward(self, X):
