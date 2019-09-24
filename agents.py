@@ -44,6 +44,9 @@ class ACNN(nn.Module):
                                       strides=cn_stride,
                                       device=self.device)
 
+        # Todo : Convert to nn.Parameter to avoid explicit transfer to cuda
+        # Todo : Add a ReLU non-linearity to connect_net's output
+        
         self.fc = nn.Sequential(
             nn.Linear(4096, 1024),
             nn.ReLU(),
@@ -51,7 +54,8 @@ class ACNN(nn.Module):
             nn.ReLU(),
             nn.Linear(256, 64),
             nn.ReLU(),
-            nn.Linear(64, 10)
+            nn.Linear(64, 10),
+            nn.LogSoftmax()
         )
 
     def forward(self, X):
