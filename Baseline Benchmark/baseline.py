@@ -5,14 +5,13 @@ import torchvision.transforms as transforms
 import torchvision.datasets
 import torch.optim as optim
 from agent import Baseline
-from torch.utils.tensorboard import SummaryWriter
-
+import numpy as np
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = Baseline().to(device)
 
 # HyperParams and Others
-EPOCHS = 3
+EPOCHS = 1
 BATCH_SIZE = 64
 LEARNING_RATE = 0.01
 
@@ -60,12 +59,13 @@ def train(trainloader: torch.utils.data.dataloader,
     :param trainloader:
     :return:
     """
+    train_loss_list = np.array([])
+    train_acc_list = np.array([])
+    val_acc_list = np.array([])
 
     for epoch in range(EPOCHS):  # loop over the dataset multiple times
         no_steps = len(trainloader)
         running_loss = 0.0
-        loss_list = []
-        acc_list = []
         for i, data in enumerate(trainloader, 0):
             # get the inputs; data is a list of [inputs, labels]
             inputs, labels = data[0].to(device), data[1].to(device)
@@ -82,8 +82,8 @@ def train(trainloader: torch.utils.data.dataloader,
             # Loggers
             _, predicted = torch.max(outputs.data, 1)
             correct = (predicted == labels).sum().item()
-            acc_list.append(correct / BATCH_SIZE)
-            loss_list.append(loss.item())
+            np.append(train_acc_list, correct / BATCH_SIZE)
+            np.append(train_loss_list, loss.item())
             running_loss += loss.item()
 
             # Print Statistics
@@ -94,6 +94,7 @@ def train(trainloader: torch.utils.data.dataloader,
         val_acc = evaluate(testloader)
         train_acc = evaluate(trainloader)
         print(f"Train Accuracy: {train_acc}    Validation Accuracy: {val_acc} \n")
+        np.append(val_acc_list, val_acc)
 
 
 if __name__ == '__main__':
