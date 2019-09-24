@@ -2,10 +2,9 @@ import torch
 from torch.nn.modules.padding import ConstantPad3d
 
 class ConnectNet(torch.nn.Module):
-    def __init__(self, input_dim, kernel_size, strides=1, padding='valid', device='cpu'):
+    def __init__(self, kernel_size, strides=1, padding='valid', device='cuda:0'):
         """
         Parameters:
-            input_dim : dimension of the tensor passed in forward function
             kernel_size : tuple, dimension of kernel/filter
             strides : an integer specifying the stride length
             padding : either 'valid' or 'same'. 'valid' refers to no padding.
@@ -14,7 +13,6 @@ class ConnectNet(torch.nn.Module):
             device : device to perform calculations on
         """
         super(ConnectNet, self).__init__()
-        self.input_dim = input_dim
         self.ks = kernel_size
         self.s = strides
         self.padding = padding
@@ -43,11 +41,9 @@ class ConnectNet(torch.nn.Module):
         x_col, h_out, w_out = self.im2col(x, hf, wf, self.s)
         x_col = x_col.t()
         x_col = x_col.to(self.device, dtype=torch.float)
-        x_col.requires_grad = True
 
         k_col = kernels.view(C_out, -1)  # converted to 2d tensor
         k_col = k_col.to(device=device, dtype=torch.float)  # to gpu
-        k_col.requires_grad = True
         x_out = torch.mm(k_col, x_col).view(C_out, h_out, w_out)  # convolution
         return x_out
 
@@ -96,6 +92,7 @@ if __name__ == '__main__':
     filters = torch.arange(24).reshape(3, 2, 2, 2)  # input filters
     y_pred = cnet.forward(input_img, filters)  # img convolved with filters
     print('Ouput is y_pred:\n', y_pred)
+    
 """
 from torch import nn
 

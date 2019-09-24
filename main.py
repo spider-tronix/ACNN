@@ -1,4 +1,4 @@
-from agents import Viba
+from agents import ACNN
 import torch
 from torch import nn
 import numpy as np
@@ -14,10 +14,10 @@ torch.manual_seed(0)
 # HyperParams and Others
 num_epochs = 3
 num_classes = 10
-batch_size = 1
+batch_size = 64
 learning_rate = 0.01
 
-model = Viba()
+model = ACNN(device=device)
 
 if __name__ == '__main__':
     # Loading Data
@@ -28,7 +28,7 @@ if __name__ == '__main__':
     train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
 
-    model = Viba()
+    model = ACNN()
     model.to(device=device)
 
     criterion = nn.CrossEntropyLoss()
