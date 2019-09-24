@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from connectd_net import ConnectNet
+from connect_net import ConnectNet
 
 
 class ACNN(nn.Module):
