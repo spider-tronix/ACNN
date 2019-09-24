@@ -2,13 +2,14 @@ from agents import ACNN
 import torch
 from torch import nn
 import torch.optim as optim
+import torch.nn.functional as F
 from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
-import torchvision.datasets
+from torchvision import datasets, transforms
+
 
 torch.manual_seed(0)
 
-def load_data(data_loc, download=False):
+def load_data(data_loc, batch_size, download=False):
 
     t = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
     train_dataset = datasets.MNIST(root=data_loc, train=True, transform=t, download=download)
@@ -16,7 +17,7 @@ def load_data(data_loc, download=False):
     train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
 
-    return train_laoder, test_loader
+    return train_loader, test_loader
 
 
 def train(model, device, train_loader, optimizer, epoch, log_interval):
@@ -54,16 +55,17 @@ def test(model, device, test_loader):
 
 
 if __name__ == '__main__':
-    # Loading Data
-    data_loc = './'
-    train_loader, test_loader = load_data(data_loc, download=True)
-    
+
     # HyperParams and Others
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu") 
-    num_epochs = 3
+    epochs = 3
     batch_size = 64
     learning_rate = 0.01
 
+    # Loading Data
+    data_loc = './'
+    train_loader, test_loader = load_data(data_loc, batch_size, download=False)
+  
     model = ACNN(device=device).to(device)
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 
