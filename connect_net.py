@@ -35,7 +35,7 @@ class ConnectNet(torch.nn.Module):
             W_out = floor(W - w_filter + 2*padding) + 1
         """
 
-        assert (x.shape == self.input_dim)  # assert right input
+        # assert (x.shape == self.input_dim)  # assert right input
         C_out, _, hf, wf = kernels.shape
         x = self.pad_tensor(x)  # pad input
         x_col, h_out, w_out = self.im2col(x, hf, wf, self.s)
@@ -43,7 +43,7 @@ class ConnectNet(torch.nn.Module):
         x_col = x_col.to(self.device, dtype=torch.float)
 
         k_col = kernels.view(C_out, -1)  # converted to 2d tensor
-        k_col = k_col.to(device=device, dtype=torch.float)  # to gpu
+        k_col = k_col.to(device=self.device, dtype=torch.float)  # to gpu
         x_out = torch.mm(k_col, x_col).view(C_out, h_out, w_out)  # convolution
         return x_out
 
