@@ -55,14 +55,18 @@ class ACNN(nn.Module):
             nn.LogSoftmax()
         )
 
-    def forward(self, X):
+    def forward(self, X, return_ff=False):
         """
         Forward Prop
         :param X: Input dataset with batch dimension
-        :return: Output of model architecture
+        :return: Output of model and parameters
         """
+        params = {}
         out1 = self.net1(X)
         out2 = self.net2(X)
+        if return_ff: 
+	    	params['features'] = out1 
+	    	params['filters'] = out2
 
         batch_size, c_in, h, w = out1.shape
         _, c_out, kh, kw = out2.shape
@@ -71,18 +75,8 @@ class ACNN(nn.Module):
         out3 = torch.zeros((batch_size, c_out, new_h, new_w),
                            device=self.device)  # need not set requires_grad = True, explicitly
 
-        # using for loops wit hF.conv2d
-        # Note : Slower than mm with im2col
-        '''for i in range(batch_size):
-            i_out1 = out1[i].view(1, c_in, h, w)
-            for j in range(c_out):
-                i_out2 = torch.squeeze(out2[i, j])[None, None, :, :]
-                i_out2 = i_out2.repeat(1, c_in, 1, 1)
-                out3[i, j] = F.conv2d(i_out1, i_out2)'''
-
         # TODO : using matrix multiplication with F.conv2d
 
-        # using matrix multiplication with im2col
         for i in range(batch_size):
             i_out2 = torch.squeeze(out2[i])[:, None, :, :]
             i_out2 = i_out2.repeat(1, c_in, 1, 1)  # broadcasting
@@ -90,4 +84,4 @@ class ACNN(nn.Module):
 
         out3 = out3.reshape(batch_size, -1)
         out3 = self.fc(out3)
-        return out3
+        return out3, params
