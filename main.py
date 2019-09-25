@@ -102,5 +102,4 @@ if __name__ == '__main__':
         train(model, device, train_loader, optimizer, epoch, log_interval=100)
         test(model, device, test_loader, num_visulaize=1, dir_save_visuals='data/visuals/')
 
-
     utils.visualize(model, device, test_dataset , save_dir='data/visuals', num_visualize=10)

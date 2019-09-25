@@ -6,8 +6,8 @@ from torch.utils.data import DataLoader
 
 
 def visualize(model, device, dataset, save_dir, 
-			  num_visualize, features_resize=(28,28), 
-		      filters_resize=(12,12)):
+	num_visualize, features_resize=(28,28), 
+	filters_resize=(12,12)):
 	
 	"""
 	Geneartes images of ouptut from first net(features network) and 
