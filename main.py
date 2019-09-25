@@ -1,10 +1,12 @@
 from agents import ACNN
+import numpy as np
 import torch
 from torch import nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
+import utils
 
 torch.manual_seed(0)
 
@@ -23,7 +25,7 @@ def load_data(data_loc, batch_size, download=False):
     train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
     test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
 
-    return train_loader, test_loader
+    return train_loader, test_loader, train_dataset, test_dataset
 
 
 def train(model: nn.Module, device,
@@ -44,7 +46,7 @@ def train(model: nn.Module, device,
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
-        output = model(data)
+        output,_ = model(data)
         loss = F.nll_loss(output, target)  # Negative log likelihood loss
         loss.backward()
         optimizer.step()
@@ -54,7 +56,8 @@ def train(model: nn.Module, device,
                        100. * batch_idx / len(train_loader), loss.item()))
 
 
-def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader):
+def test(model: nn.Module, device, 
+         test_loader: torch.utils.data.DataLoader):
     """
     Performs evaluation on dataset
     :param model: Model Classs
@@ -89,12 +92,15 @@ if __name__ == '__main__':
     learning_rate = 0.01
 
     # Loading Data
-    data_loc = 'E:\Datasets'
-    train_loader, test_loader = load_data(data_loc, batch_size, download=False)
+    data_loc = '/home/sachin/Desktop/ACNN/ACNN/data/MNIST'
+    train_loader, test_loader, train_dataset, test_dataset = load_data(data_loc, batch_size, download=False)
 
     model = ACNN(device=device).to(device)
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 
     for epoch in range(1, epochs + 1):
         train(model, device, train_loader, optimizer, epoch, log_interval=100)
-        test(model, device, test_loader)
+        test(model, device, test_loader, num_visulaize=1, dir_save_visuals='data/visuals/')
+
+
+    utils.visualize(model, device, test_dataset , save_dir='data/visuals', num_visualize=10)
