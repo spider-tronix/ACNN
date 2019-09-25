@@ -13,9 +13,6 @@ class ACNN(nn.Module):
                  # kernel_size=3, stride=1, padding=2,
                  cn_kernel_size=(3, 3), cn_stride=1,
                  device='cuda:0'):
-        """
-        Init all variables for class
-        """
         super(ACNN, self).__init__()
         self.device = device
 
@@ -46,7 +43,7 @@ class ACNN(nn.Module):
 
         # Todo : Convert to nn.Parameter to avoid explicit transfer to cuda
         # Todo : Add a ReLU non-linearity to connect_net's output
-        
+
         self.fc = nn.Sequential(
             nn.Linear(4096, 1024),
             nn.ReLU(),
@@ -59,6 +56,11 @@ class ACNN(nn.Module):
         )
 
     def forward(self, X):
+        """
+        Forward Prop
+        :param X: Input dataset with batch dimension
+        :return: Output of model architecture
+        """
         out1 = self.net1(X)
         out2 = self.net2(X)
 
