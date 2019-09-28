@@ -1,11 +1,6 @@
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
+from torch.utils.data import DataLoader
 from torchvision import datasets
-from torch import optim
-from base_model import BaseModel
 
 
 def load_data(data_loc, batch_size, download=False):

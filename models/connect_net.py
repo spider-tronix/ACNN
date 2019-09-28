@@ -37,6 +37,7 @@ class ConnectNet(torch.nn.Module):
         """
 
         # assert (x.shape == self.input_dim)  # assert right input
+        # noinspection PyPep8Naming
         C_out, _, hf, wf = kernels.shape
         x = self.pad_tensor(x)  # pad input
         x_col, h_out, w_out = self.im2col(x, hf, wf, self.s)
@@ -53,7 +54,7 @@ class ConnectNet(torch.nn.Module):
         Parameters :
             x : tensor to be padded of dimension (C,H,W)
         Returns :
-            padded tesnor
+            padded tensor
         """
         if self.padding == 'same':
             pad_h, pad_w = int((self.ks[0] - 1) / 2), int((self.ks[1] - 1) / 2)
@@ -61,7 +62,8 @@ class ConnectNet(torch.nn.Module):
             return pad(x)
         return x
 
-    def im2col(self, x, hf, wf, stride):
+    @staticmethod
+    def im2col(x, hf, wf, stride):
 
         """
         Parameters:
@@ -84,12 +86,3 @@ class ConnectNet(torch.nn.Module):
                 patch = x[..., i * stride:i * stride + hf, j * stride:j * stride + wf]
                 x_col[i * w_out + j, :] = patch.reshape(-1)  # patch.reshape(-1)
         return x_col, h_out, w_out
-
-
-if __name__ == '__main__':
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    cnet = ConnectNet(input_dim=(2, 3, 3), kernel_size=(2, 2), device=device)
-    input_img = torch.arange(18).reshape((2, 3, 3))  # input img
-    filters = torch.arange(24).reshape(3, 2, 2, 2)  # input filters
-    y_pred = cnet.forward(input_img, filters)  # img convolved with filters
-    print('Ouput is y_pred:\n', y_pred)

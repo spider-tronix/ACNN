@@ -1,10 +1,6 @@
-import torch
 import torch.nn as nn
+# noinspection PyPep8Naming
 import torch.nn.functional as F
-from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
-from torchvision import datasets
-from torch import optim
 
 
 class BaseModel(nn.Module):
@@ -23,4 +19,4 @@ class BaseModel(nn.Module):
         x = x.view(batch_size, -1)
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        return F.log_softmax(self.fc3(x))
+        return F.log_softmax(self.fc3(x), dim=1)

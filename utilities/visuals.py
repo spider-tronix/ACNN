@@ -26,6 +26,7 @@ def visualize(model, device, dataset, save_dir,
             save(features, filters, data, save_dir, features_resize, filters_resize)
 
 
+# noinspection PyShadowingBuiltins
 def save(features, filters, data, dir, features_resize, filters_resize):
     """
     saves the features and filters as images
@@ -41,15 +42,15 @@ def save(features, filters, data, dir, features_resize, filters_resize):
 
         try:
             os.mkdir(img_dir)
-        except:
+        except FileExistsError:
             pass
         try:
             os.mkdir(features_dir)
-        except:
+        except FileExistsError:
             pass
         try:
             os.mkdir(filters_dir)
-        except:
+        except FileExistsError:
             pass
 
         img = Image.fromarray(np.uint8(data[i, 0].cpu().numpy() * 255))

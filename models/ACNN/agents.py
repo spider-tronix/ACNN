@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from connect_net import ConnectNet
+from models.connect_net import ConnectNet
 
 
 class ACNN(nn.Module):
@@ -10,7 +9,6 @@ class ACNN(nn.Module):
     def __init__(self,
                  net1_channels=(1, 16, 32),
                  net2_channels=(1, 16, 32, 64),
-                 # kernel_size=3, stride=1, padding=2,
                  cn_kernel_size=(3, 3), cn_stride=1,
                  device='cuda:0'):
         super(ACNN, self).__init__()
@@ -52,12 +50,14 @@ class ACNN(nn.Module):
             nn.Linear(256, 64),
             nn.ReLU(),
             nn.Linear(64, 10),
-            nn.LogSoftmax()
+            nn.LogSoftmax(dim=1)
         )
 
+    # noinspection PyPep8Naming
     def forward(self, X, return_ff=False):
         """
         Forward Prop
+        :param return_ff: Flag for layer visualizations
         :param X: Input dataset with batch dimension
         :return: Output of model and parameters
         """
@@ -80,8 +80,8 @@ class ACNN(nn.Module):
         for i in range(batch_size):
             i_out2 = torch.squeeze(out2[i])[:, None, :, :]
             i_out2 = i_out2.repeat(1, c_in, 1, 1)  # broadcasting
-            out3[i] = self.connect_net.forward(out1[i], i_out2)
+            out3[i] = self.connect_net(out1[i], i_out2)
 
         out3 = out3.reshape(batch_size, -1)
         out3 = self.fc(out3)
-        return out3, params
+        return out3

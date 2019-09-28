@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+# noinspection PyPep8Naming
 import torch.nn.functional as F
 
 
@@ -64,7 +65,7 @@ class BasicBlock(nn.Module):
 class ResNet(nn.Module):
     """Handles entire structure"""
 
-    def __init__(self, architecture=[1, 1, 1, 1], num_classes=10):
+    def __init__(self, architecture, num_classes=10):
         """
 
         :param architecture: Decided from required depth of network
@@ -153,9 +154,11 @@ class ResNet(nn.Module):
         return F.log_softmax(x, dim=1)  # Thanks to https://github.com/sachin-101 for a great tip
 
 
-def resnet(architecture=[1, 1, 1, 1], num_classes=10):
+def resnet(architecture=None, num_classes=10):
     r"""ResNet-18 model from
     `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_
     """
+    if architecture is None:
+        architecture = [1, 1, 1, 1]
     model = ResNet(architecture, num_classes=num_classes)
     return model
