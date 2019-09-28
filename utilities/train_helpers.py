@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader
 def train(model: nn.Module, device,
           train_loader: torch.utils.data.DataLoader,
           optimizer: torch.optim.SGD,
-          epoch, log_interval):
+          epoch, log_interval, writer=None):
     """
     Performs one epoch of training on model
     :param model: Model class
@@ -17,6 +17,7 @@ def train(model: nn.Module, device,
     :param optimizer: Training agent for performing backprop
     :param epoch: Epoch number for logging purpose
     :param log_interval: Print stats for every
+    :param writer: Tensorboard writer to track training accuracy
     :return:
     """
     model.train()
@@ -37,9 +38,10 @@ def train(model: nn.Module, device,
                 epoch, batch_idx * len(data), len(train_loader.dataset), 100. * batch_idx / len(train_loader),
                 loss.item()))
 
-            # writer.add_scalar('training loss',  # writing to tensorboard
-            #                   running_loss / log_interval,
-            #                   (epoch - 1) * len(train_loader) + batch_idx)
+            if writer is not None:
+                writer.add_scalar('training loss',  # writing to tensorboard
+                                running_loss / log_interval,
+                                (epoch - 1) * len(train_loader) + batch_idx)
             running_loss = 0.0
 
     print('\nTraining Accuracy: {}/{} ({:.4f}%)'.format(correct, len(train_loader.dataset),
