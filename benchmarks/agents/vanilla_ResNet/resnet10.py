@@ -75,6 +75,9 @@ class ResNet(nn.Module):
         norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
 
+        if architecture is None:
+            architecture = [1, 1, 1, 1]
+
         self.inplanes = 64
         self.dilation = 1
 

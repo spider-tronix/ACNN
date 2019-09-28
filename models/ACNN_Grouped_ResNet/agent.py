@@ -25,7 +25,9 @@ class ResnetUnit(ResNet):
         x = self.layer3(x)
         x = self.layer4(x)
 
-        x = self.avgpool(x)
+        # x = self.avgpool(x)
+
+        return x
 
 
 class ACNNResNet(nn.Module):
@@ -35,11 +37,11 @@ class ACNNResNet(nn.Module):
         self.net2 = ResnetUnit()
 
         self.fc = nn.Sequential(
-            nn.Linear(4096, 1024),
+            nn.Linear(512, 256),
             nn.ReLU(),
-            nn.Linear(1024, 256),
+            nn.Linear(256, 128),
             nn.ReLU(),
-            nn.Linear(256, 64),
+            nn.Linear(128, 64),
             nn.ReLU(),
             nn.Linear(64, 10),
             nn.LogSoftmax(dim=1)
@@ -69,4 +71,3 @@ class ACNNResNet(nn.Module):
         out3 = out3.reshape(batch_size, -1)
         out3 = self.fc(out3)
         return out3
-
