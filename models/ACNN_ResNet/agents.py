@@ -1,7 +1,9 @@
 import torch
 import torch.nn as nn
+# noinspection PyPep8Naming
 import torch.nn.functional as F
-import torch.optim as optim
+from models.connect_net import ConnectNet
+
 
 class AcnnResNet(nn.Module):
 
@@ -15,41 +17,41 @@ class AcnnResNet(nn.Module):
         self.device = device
 
         # ----------------------Features Network------------------------#
-        
+
         self.conv1 = nn.Conv2d(1, 64, 3, stride=1)
 
         self.block1 = nn.Sequential(
-             nn.Conv2d(64, 64, 3, stride=1, padding=1),
-             nn.ReLU(),
-             nn.Conv2d(64, 64, 3, stride=1, padding=1)             
+            nn.Conv2d(64, 64, 3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, 3, stride=1, padding=1)
         )
 
         self.block2 = nn.Sequential(
-             nn.Conv2d(64, 64, 3, stride=1, padding=1),
-             nn.ReLU(),
-             nn.Conv2d(64, 64, 3, stride=1, padding=1)         
+            nn.Conv2d(64, 64, 3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, 3, stride=1, padding=1)
         )
 
         self.conv6 = nn.Conv2d(64, 128, 3, stride=1)
 
         self.block3 = nn.Sequential(
-             nn.Conv2d(128, 128, 3, stride=1, padding=1),
-             nn.ReLU(),
-             nn.Conv2d(128, 128, 3, stride=1, padding=1)             
+            nn.Conv2d(128, 128, 3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(128, 128, 3, stride=1, padding=1)
         )
 
         self.conv9 = nn.Conv2d(128, 256, 3, stride=1)
 
         self.block4 = nn.Sequential(
-             nn.Conv2d(256, 256, 3, stride=1, padding=1),
-             nn.ReLU(),
-             nn.Conv2d(256, 256, 3, stride=1, padding=1)             
+            nn.Conv2d(256, 256, 3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(256, 256, 3, stride=1, padding=1)
         )
 
-        #---------------------Filters Network-------------------------#   
+        # ---------------------Filters Network-------------------------#
 
         self.net2 = nn.Sequential(
-            nn.Conv2d(1, 16 ,3, stride=1),
+            nn.Conv2d(1, 16, 3, stride=1),
             nn.ReLU(),
             nn.Conv2d(16, 32, 5, stride=2),
             nn.ReLU(),
@@ -57,17 +59,17 @@ class AcnnResNet(nn.Module):
             nn.ReLU()
         )
 
-        #--------------------Connect Network--------------------------#
+        # --------------------Connect Network--------------------------#
 
         self.connect_net = ConnectNet(cn_kernel_size,
                                       strides=cn_stride,
                                       device=self.device)
-        
-        #--------------------Classifier Network-----------------------#
+
+        # --------------------Classifier Network-----------------------#
 
         self.classifier = nn.Sequential(
-            #nn.Linear(19*19*64, 1024),
-            nn.Linear(22*22*256, 1024),
+            # nn.Linear(19*19*64, 1024),
+            nn.Linear(22 * 22 * 256, 1024),
             nn.ReLU(),
             nn.Linear(1024, 256),
             nn.ReLU(),
@@ -77,28 +79,29 @@ class AcnnResNet(nn.Module):
             nn.LogSoftmax()
         )
 
+    # noinspection PyPep8Naming
     def forward(self, X_in):
         """
         forward propagation logic
         """
 
-        #---------------------features network------------------------------#
+        # ---------------------features network------------------------------#
         x = self.conv1(X_in)
-        residual1 = x   # save input as residual
+        residual1 = x  # save input as residual
         x = self.block1(x)
 
         x += residual1  # add residual to output of block 1
         x = F.relu(x)  # perform relu non-linearity
-        residual2 = x   # update residual
+        residual2 = x  # update residual
         x = self.block2(x)
 
-        x += residual2 
-        x = F.relu(x) 
+        x += residual2
+        x = F.relu(x)
         x = self.conv6(x)
 
-        residual3 = x   # update residual
+        residual3 = x  # update residual
         x = self.block3(x)
-        
+
         x += residual3
         x = F.relu(x)
         x = self.conv9(x)
@@ -107,29 +110,29 @@ class AcnnResNet(nn.Module):
         x = self.block4(x)
         x += residual4
         out1 = F.relu(x)
-    
-        #---------------------filters network------------------------------#
+
+        # ---------------------filters network------------------------------#
 
         out2 = self.net2(X_in)  # not x, but X_in (raw input)
 
-        #---------------------Connect network-------------------------------#
-        
+        # ---------------------Connect network-------------------------------#
+
         batch_size, c_in, h, w = out1.shape
         _, c_out, kh, kw = out2.shape
         new_h, new_w = h - kh + 1, h - kw + 1
 
         out3 = torch.zeros((batch_size, c_out, new_h, new_w),
-                           device=self.device)  
+                           device=self.device)
 
         for i in range(batch_size):
             i_out2 = torch.squeeze(out2[i])[:, None, :, :]
             i_out2 = i_out2.repeat(1, c_in, 1, 1)  # broadcasting
-            out3[i] = self.connect_net.forward(out1[i], i_out2)
-        
+            out3[i] = self.connect_net(out1[i], i_out2)
+
         # TODO: Perform Relu operation on connect net's output        
-        #---------------------Classifier network----------------------------#
-        
-        #out3 = out3.reshape(batch_size, -1)
+        # ---------------------Classifier network----------------------------#
+
+        # out3 = out3.reshape(batch_size, -1)
         out3 = out1.reshape(batch_size, -1)
         out3 = self.classifier(out3)
         return out3

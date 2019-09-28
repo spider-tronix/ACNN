@@ -2,7 +2,7 @@ import torch
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 
-from models.acnn_ResNet import AcnnResNet
+from models.ACNN_ResNet.agents import AcnnResNet
 from utilities.data import load_data
 from utilities.train_helpers import train, test
 
@@ -19,8 +19,9 @@ if __name__ == '__main__':
     train_loader, test_loader = load_data(data_loc, batch_size, download=False)
 
     # Tensorboard writer
-    writer = SummaryWriter('/data/summary/mnist_resnet_1') 
+    writer = SummaryWriter('/data/summary/mnist_resnet_1')
 
+    # noinspection PyUnresolvedReferences
     model = AcnnResNet(device=device).to(device=device)
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 
