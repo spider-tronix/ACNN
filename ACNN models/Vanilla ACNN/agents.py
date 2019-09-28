@@ -65,8 +65,8 @@ class ACNN(nn.Module):
         out1 = self.net1(X)
         out2 = self.net2(X)
         if return_ff: 
-	    	params['features'] = out1 
-	    	params['filters'] = out2
+            params['features'] = out1 
+            params['filters'] = out2
 
         batch_size, c_in, h, w = out1.shape
         _, c_out, kh, kw = out2.shape
