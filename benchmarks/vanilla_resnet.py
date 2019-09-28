@@ -1,7 +1,7 @@
 import torch
 import torch.optim as optim
 
-from models.vanilla_ResNet.resnet10 import resnet
+from benchmarks.agents.vanilla_ResNet.resnet10 import resnet
 from utilities.data import load_data
 from utilities.train_helpers import train, test
 
