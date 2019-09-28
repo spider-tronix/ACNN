@@ -4,12 +4,15 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
+from torch.utils.tensorboard import SummaryWriter
+
 from resnet_agent import resnet
+from base_resnet import BaseResNet
+
 
 torch.manual_seed(0)
 
 
-# noinspection PyShadowingNames
 def load_data(data_loc, batch_size, download=False):
     """
     Downloads data or uses existing. Packs into iterable Dataloader
@@ -27,11 +30,11 @@ def load_data(data_loc, batch_size, download=False):
     return train_loader, test_loader
 
 
-# noinspection PyShadowingNames
+
 def train(model: nn.Module, device,
           train_loader: torch.utils.data.DataLoader,
           optimizer: torch.optim.SGD,
-          epoch, log_interval):
+          epoch, log_interval, writer):
     """
     Performs one epoch of training on model
     :param model: Model class
@@ -43,20 +46,33 @@ def train(model: nn.Module, device,
     :return:
     """
     model.train()
+    running_loss = 0.0
+    correct = 0
     for batch_idx, (data, target) in enumerate(train_loader):
         data, target = data.to(device), target.to(device)
         optimizer.zero_grad()
         output = model(data)
-        loss = F.nll_loss(output, target)  # Negative log likelihood loss
+        loss = F.nll_loss(output, target)
+        pred = output.argmax(dim=1, keepdim=True) # get the index of the max log-probability
+        correct += pred.eq(target.view_as(pred)).sum().item()
         loss.backward()
         optimizer.step()
+        running_loss += loss.item()
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch, batch_idx * len(data), len(train_loader.dataset), 100. * batch_idx / len(train_loader),
-                loss.item()))
+                epoch, batch_idx * len(data), len(train_loader.dataset),
+                100. * batch_idx / len(train_loader), loss.item()))
+            
+            writer.add_scalar('training loss',     # writing to tensorboard
+                        running_loss / log_interval,
+                        (epoch-1) * len(train_loader) + batch_idx)
+            running_loss = 0.0
+    
+    print('\nTraining Accuracy: {}/{} ({:.4f}%)\n'.format( correct, len(train_loader.dataset),
+                                            100. * correct / len(train_loader.dataset)))
 
 
-# noinspection PyShadowingNames
+
 def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader):
     """
     Performs evaluation on dataset
@@ -91,13 +107,16 @@ if __name__ == '__main__':
     batch_size = 64
     learning_rate = 0.01
 
+    writer = SummaryWriter('/content/runs/mnist_training_2')  # tensorboard writer
+
     # Loading Data
     data_loc = 'E:\Datasets'
     train_loader, test_loader = load_data(data_loc, batch_size, download=False)
 
-    model = resnet().to(device=device)
+    # model = resnet().to(device=device)
+    model = BaseResNet().to(device=device)
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 
     for epoch in range(1, epochs + 1):
-        train(model, device, train_loader, optimizer, epoch, log_interval=100)
+        train(model, device, train_loader, optimizer, epoch, 100, writer)
         test(model, device, test_loader)
