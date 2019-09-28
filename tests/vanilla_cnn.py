@@ -1,7 +1,7 @@
 import torch
 from torch import optim
 
-from models.vanilla_CNN.base_model import BaseModel
+from benchmarks.vanilla_CNN.base_model import BaseModel
 from utilities.data import load_data
 from utilities.train_helpers import train, test
 
