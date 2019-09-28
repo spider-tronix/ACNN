@@ -1,7 +1,7 @@
 import torch
 import torch.optim as optim
 
-from models.ACNN.agents import ACNN
+from models.ACNN.basic_model import ACNN
 from utilities.data import load_data
 from utilities.train_helpers import train, test
 

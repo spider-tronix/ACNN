@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from models.connect_net import ConnectNet
 
 
@@ -40,6 +39,9 @@ class ACNN(nn.Module):
                                       strides=cn_stride,
                                       device=self.device)
 
+        # Todo : Convert to nn.Parameter to avoid explicit transfer to cuda
+        # Todo : Add a ReLU non-linearity to connect_net's output
+
         self.fc = nn.Sequential(
             nn.Linear(4096, 1024),
             nn.ReLU(),
@@ -62,21 +64,23 @@ class ACNN(nn.Module):
         params = {}
         out1 = self.net1(X)
         out2 = self.net2(X)
-        if return_ff:
-            params['features'] = out1
+        if return_ff: 
+            params['features'] = out1 
             params['filters'] = out2
 
-        batch_size, c1, h1, w1 = out1.shape
-        _, c2, h2, w2 = out2.shape
+        batch_size, c_in, h, w = out1.shape
+        _, c_out, kh, kw = out2.shape
+        new_h, new_w = h - kh + 1, h - kw + 1
 
-        out2 = out2[:, :, None, :, :]
-        out2 = out2.repeat(1, 1, c1, 1, 1)
+        out3 = torch.zeros((batch_size, c_out, new_h, new_w),
+                           device=self.device)  # need not set requires_grad = True, explicitly
 
-        out3 = F.conv2d(
-            input=out1.view(1, batch_size * c1, h1, w1),
-            weight=out2.view(batch_size * c2, c1, h2, w2),
-            groups=batch_size
-        )
+        # TODO : using matrix multiplication with F.conv2d
+
+        for i in range(batch_size):
+            i_out2 = torch.squeeze(out2[i])[:, None, :, :]
+            i_out2 = i_out2.repeat(1, c_in, 1, 1)  # broadcasting
+            out3[i] = self.connect_net(out1[i], i_out2)
 
         out3 = out3.reshape(batch_size, -1)
         out3 = self.fc(out3)
