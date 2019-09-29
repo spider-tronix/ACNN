@@ -13,16 +13,20 @@
 │   ├── Vanilla_ACNN.py
 │   └── Vanilla_ResNet.py
 |
-├── results					# Results on standard datasets
+├── results
+│   ├── main.py
 │   └── MNIST
-│   	├── Benchmark Results    # Benchmarks Results for each benchmark model				
-│   	└── Vanilla_ACNN    
-|			└── Training 1		# Each Training in a folder
-|				├── Tensorboard Graphs     
-|		 		├──	Output.txt 			# Detailed training data
-|		 		├──	Readme.md 			# Hyperparams used
-|				└── Visualizations	   	# Images of both nets
-│   	└── Resnet_ACNN
+│   	├── Benchmark Results 	# Results of each Benchmark model	
+|		|	
+│       └── Vanilla_ACNN
+│            └──Training_1
+│               ├── Output.txt 		# Detailed training data
+│               ├── README.md 		# Hyperparams used
+│               ├── Tensorboard_Graphs
+│               └── training_loss.png
+|		|
+│       └── ACNN_ResNet
+|	|
 |	├──	SVHN
 |	└── CIFAR 10
 |
