@@ -2,7 +2,7 @@ import torch
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 
-from benchmarks.vanilla_ResNet.resnet10_bare import BaseResNet
+from experimental.ACNN_Grouped_ResNet.modded_resnet import BaseResNet
 from utilities.data import load_data
 from utilities.train_helpers import train, test
 

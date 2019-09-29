@@ -1,4 +1,3 @@
-import torch
 import torch.nn as nn
 # noinspection PyPep8Naming
 import torch.nn.functional as F
@@ -13,78 +12,79 @@ class BaseResNet(nn.Module):
         super(BaseResNet, self).__init__()
         self.device = device
 
-        self.layer1 = nn.Sequential(
-            nn.Conv2d(1, 16, 3, stride=1, bias=False),
-            nn.BatchNorm2d(16),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        self.conv1 = nn.Conv2d(1, 64, 3, stride=1)
+
+        self.block1 = nn.Sequential(
+            nn.Conv2d(64, 64, 3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, 3, stride=1, padding=1)
         )
 
-        self.layer2 = nn.Sequential(
-            nn.Conv2d(16, 16, 3, stride=1, padding=1, bias=False),
-            nn.BatchNorm2d(16),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(16, 16, 3, stride=1, padding=1, bias=False),
-            nn.BatchNorm2d(16)
+        self.block2 = nn.Sequential(
+            nn.Conv2d(64, 64, 3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(64, 64, 3, stride=1, padding=1)
         )
 
-        self.downsample_2_3 = nn.Sequential(
-            nn.Conv2d(16, 32, 1, stride=2, bias=False),
-            nn.BatchNorm2d(32)
+        self.conv6 = nn.Conv2d(64, 128, 3, stride=1)
+
+        self.block3 = nn.Sequential(
+            nn.Conv2d(128, 128, 3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(128, 128, 3, stride=1, padding=1)
         )
 
-        self.layer3 = nn.Sequential(
-            nn.Conv2d(16, 32, 3, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(32),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(32, 32, 3, stride=1, padding=1, bias=False),
-            nn.BatchNorm2d(32)
+        self.conv9 = nn.Conv2d(128, 256, 3, stride=1)
+
+        self.block4 = nn.Sequential(
+            nn.Conv2d(256, 256, 3, stride=1, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(256, 256, 3, stride=1, padding=1)
         )
 
-        self.downsample_3_4 = nn.Sequential(
-            nn.Conv2d(32, 64, 1, stride=2, bias=False),
-            nn.BatchNorm2d(64)
+        self.classifier = nn.Sequential(
+            nn.Linear(22 * 22 * 256, 5120),
+            nn.ReLU(),
+            nn.Linear(5120, 2560),
+            nn.ReLU(),
+            nn.Linear(2560, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 256),
+            nn.ReLU(),
+            nn.Linear(256, 10),
+            nn.LogSoftmax()
         )
 
-        self.layer4 = nn.Sequential(
-            nn.Conv2d(32, 64, 3, stride=2, padding=1, bias=False),
-            nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)
-        )
-
-        self.avgpool = nn.AdaptiveAvgPool2d(output_size=(1, 1))
-
-        self.fc = nn.Sequential(
-            nn.Linear(64, 10),
-            nn.LogSoftmax(dim=1)
-        )
-
-    # noinspection PyPep8Naming
-    def forward(self, X):
+    def forward(self, x):
         """
         forward propagation logic
         """
 
-        out1 = self.layer1(X)
+        x = self.conv1(x)
+        residual1 = x  # save input as residual
 
-        identity1 = out1
-        out2 = self.layer2(out1)
-        out2 += identity1       # adding residual
-        F.relu(out2, inplace=True)
+        x = self.block1(x)
+        x += residual1  # add residual to output of block 1
+        x = F.relu(x)  # perform relu non-linearity
+        residual2 = x  # update residual
 
-        identity2 = self.downsample_2_3(out2)
-        out3 = self.layer3(out2)
-        out3 += identity2
-        F.relu(out3, inplace=True)
+        x = self.block2(x)
+        x += residual2
+        x = F.relu(x)
 
-        identity3 = self.downsample_3_4(out3)
-        out4 = self.layer4(out3)
-        out4 += identity3
-        F.relu(out4, inplace=True)
+        x = self.conv6(x)
+        residual3 = x  # update residual
 
-        out = self.avgpool(out4)
-        out = torch.flatten(out, 1)
-        out = self.fc(out)
+        x = self.block3(x)
+        x += residual3
+        x = F.relu(x)
 
-        return out
+        x = self.conv9(x)
+        residual4 = x
+
+        x = self.block4(x)
+        x += residual4
+        out1 = F.relu(x)
+
+        out1 = out1.view(out1.shape[0], -1)
+        return self.classifier(out1)

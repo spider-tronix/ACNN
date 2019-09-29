@@ -72,3 +72,18 @@ def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader):
     print('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
+
+
+# noinspection PyShadowingNames
+def grouped_conv(img, filters):
+    batch_size, c_in, h1, w1 = img.shape
+    _, c_out, h2, w2 = filters.shape
+
+    filters = filters[:, :, None, :, :]
+    filters = filters.repeat(1, 1, c_in, 1, 1)
+
+    return F.conv2d(
+        input=img.view(1, batch_size * c_in, h1, w1),
+        weight=filters.view(batch_size * c_out, c_in, h2, w2),
+        groups=batch_size
+    )
