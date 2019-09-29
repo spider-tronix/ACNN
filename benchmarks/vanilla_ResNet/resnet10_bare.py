@@ -12,48 +12,74 @@ class BaseResNet(nn.Module):
         super(BaseResNet, self).__init__()
         self.device = device
 
-        self.conv1 = nn.Conv2d(1, 64, 3, stride=1)
-
-        self.block1 = nn.Sequential(
-            nn.Conv2d(64, 64, 3, stride=1, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(64, 64, 3, stride=1, padding=1)
+        self.layer1 = nn.Sequential(
+            nn.Conv2d(1, 16, 3, stride=1, bias=False),
+            nn.BatchNorm2d(16),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         )
 
-        self.block2 = nn.Sequential(
-            nn.Conv2d(64, 64, 3, stride=1, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(64, 64, 3, stride=1, padding=1)
+        self.layer2 = nn.Sequential(
+            nn.Conv2d(16, 16, 3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(16),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(16, 16, 3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(16)
         )
 
-        self.conv6 = nn.Conv2d(64, 128, 3, stride=1)
-
-        self.block3 = nn.Sequential(
-            nn.Conv2d(128, 128, 3, stride=1, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(128, 128, 3, stride=1, padding=1)
+        self.downsample_2_3 = nn.Sequential(
+            nn.Conv2d(16, 32, 1, stride=2, bias=False),
+            nn.BatchNorm2d(32)
         )
 
-        self.conv9 = nn.Conv2d(128, 256, 3, stride=1)
-
-        self.block4 = nn.Sequential(
-            nn.Conv2d(256, 256, 3, stride=1, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(256, 256, 3, stride=1, padding=1)
+        self.layer3 = nn.Sequential(
+            nn.Conv2d(16, 32, 3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(32, 32, 3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(32)
         )
 
-        self.classifier = nn.Sequential(
-            nn.Linear(22 * 22 * 256, 5120),
-            nn.ReLU(),
-            nn.Linear(5120, 2560),
-            nn.ReLU(),
-            nn.Linear(2560, 1024),
-            nn.ReLU(),
-            nn.Linear(1024, 256),
-            nn.ReLU(),
-            nn.Linear(256, 10),
-            nn.LogSoftmax()
+        self.downsample_3_4 = nn.Sequential(
+            nn.Conv2d(32, 64, 1, stride=2, bias=False),
+            nn.BatchNorm2d(64)
         )
+
+        self.layer4 = nn.Sequential(
+            nn.Conv2d(32, 64, 3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)
+        )
+
+        self.avgpool = nn.AdaptiveAvgPool2d(output_size=(1, 1))
+
+        # TODO: Add Linear Layer dependant upon output
+
+        # self.downsample_4_5 = nn.Sequential(
+        #     nn.Conv2d(64, 64, 1, stride=2, bias=False),
+        #     nn.BatchNorm2d(64)
+        # )
+        #
+        # self.layer4 = nn.Sequential(
+        #     nn.Conv2d(32, 64, 3, stride=2, padding=1, bias=False),
+        #     nn.BatchNorm2d(64),
+        #     nn.ReLU(inplace=True),
+        #     nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)
+        # )
+
+        # self.classifier = nn.Sequential(
+        #     nn.Linear(22 * 22 * 256, 5120),
+        #     nn.ReLU(),
+        #     nn.Linear(5120, 2560),
+        #     nn.ReLU(),
+        #     nn.Linear(2560, 1024),
+        #     nn.ReLU(),
+        #     nn.Linear(1024, 256),
+        #     nn.ReLU(),
+        #     nn.Linear(256, 10),
+        #     nn.LogSoftmax()
+        # )
 
     def forward(self, x):
         """

@@ -173,3 +173,6 @@ def resnet(architecture=None, num_classes=10):
         architecture = [1, 1, 1, 1]
     model = ResNet(architecture, num_classes=num_classes)
     return model
+
+model = resnet()
+print("Done")
