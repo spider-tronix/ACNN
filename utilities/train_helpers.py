@@ -69,6 +69,6 @@ def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader):
 
     test_loss /= len(test_loader.dataset)
 
-    print('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+    print('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
