@@ -1,66 +1,67 @@
-import torch.nn as nn
+from torch import nn
 # noinspection PyPep8Naming
+import torch.nn.functional as F
+
+from benchmarks.vanilla_ResNet.base_resnet import BaseResNet
 from utilities.train_helpers import grouped_conv
 
 
+# noinspection PyPep8Naming
+class ACNNResNet(BaseResNet):
+    def __init__(self):
+        super(ACNNResNet, self).__init__()
+
+    def forward(self, X):
+        out1 = self.layer1(X)
+
+        identity1 = out1
+        out2 = self.layer2(out1)
+        out2 += identity1  # adding residual
+        F.relu(out2)
+
+        identity2 = self.downsample_2_3(out2)
+        out3 = self.layer3(out2)
+        out3 += identity2
+        F.relu(out3)
+
+        identity3 = self.downsample_3_4(out3)
+        out4 = self.layer4(out3)
+        out4 += identity3
+        out = F.relu(out4)
+
+        # out = self.avgpool(out4)
+
+        return out
+
+
+# noinspection PyPep8Naming
 class ACNN(nn.Module):
-    """Branches of the Network"""
-
-    def __init__(self,
-                 input_channels=1,
-                 net1_channels=None,
-                 net2_channels=None):
+    def __init__(self):
         super(ACNN, self).__init__()
-
-        if net2_channels is None:
-            net2_channels = [1, 16, 32, 64]
-        if net1_channels is None:
-            net1_channels = [1, 16, 32]
-        if input_channels != 1:
-            net1_channels[0], net2_channels[0] = input_channels, input_channels
-        self.net1 = nn.Sequential(
-            nn.Conv2d(net1_channels[0], net1_channels[1],
-                      kernel_size=3, stride=1),
-            nn.ReLU(),
-            nn.Conv2d(net1_channels[1], net1_channels[2],
-                      kernel_size=5, stride=2),
-            nn.ReLU()
-        )
+        self.net1 = ACNNResNet()
 
         self.net2 = nn.Sequential(
-            nn.Conv2d(net2_channels[0], net2_channels[1],
-                      kernel_size=3, stride=1),
-            nn.ReLU(),
-            nn.Conv2d(net2_channels[1], net2_channels[2],
-                      kernel_size=5, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(net2_channels[2], net2_channels[3],
-                      kernel_size=5, stride=2),
+            nn.Conv2d(1, 16, 3, stride=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(16, 32, 5, stride=2),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(32, 64, 5, stride=2),
             nn.ReLU()
         )
 
         self.fc = nn.Sequential(
-            nn.Linear(5184, 1024),
-            nn.ReLU(),
-            nn.Linear(1024, 256),
-            nn.ReLU(),
-            nn.Linear(256, 64),
-            nn.ReLU(),
-            nn.Linear(64, 10),
+            nn.Linear(64, 32),
+            nn.ReLU(inplace=True),
+            nn.Linear(32, 16),
+            nn.ReLU(inplace=True),
+            nn.Linear(16, 10),
             nn.LogSoftmax(dim=1)
         )
 
-    # noinspection PyPep8Naming
     def forward(self, X):
-        """
-        Forward Prop
-        :param X: Input dataset with batch dimension
-        :return: Output of model and parameters
-        """
         out1 = self.net1(X)
         out2 = self.net2(X)
 
-        out3 = grouped_conv(out1, out2)
+        out = grouped_conv(out1, out2)
 
-        out3 = self.fc(out3)
-        return out3
+        return self.fc(out)

@@ -14,7 +14,7 @@ class ACNN(nn.Module):
         self.net1 = nn.Sequential(
             nn.Conv2d(net1_channels[0], net1_channels[1],
                       kernel_size=3, stride=1),
-            nn.ReLU(),
+            nn.ReLU(inplace=True),
             nn.Conv2d(net1_channels[1], net1_channels[2],
                       kernel_size=5, stride=2),
             nn.ReLU()
@@ -23,10 +23,10 @@ class ACNN(nn.Module):
         self.net2 = nn.Sequential(
             nn.Conv2d(net2_channels[0], net2_channels[1],
                       kernel_size=3, stride=1),
-            nn.ReLU(),
+            nn.ReLU(inplace=True),
             nn.Conv2d(net2_channels[1], net2_channels[2],
                       kernel_size=5, stride=2),
-            nn.ReLU(),
+            nn.ReLU(inplace=True),
             nn.Conv2d(net2_channels[2], net2_channels[3],
                       kernel_size=5, stride=2),
             nn.ReLU()
@@ -34,11 +34,11 @@ class ACNN(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(4096, 1024),
-            nn.ReLU(),
+            nn.ReLU(inplace=True),
             nn.Linear(1024, 256),
-            nn.ReLU(),
+            nn.ReLU(inplace=True),
             nn.Linear(256, 64),
-            nn.ReLU(),
+            nn.ReLU(inplace=True),
             nn.Linear(64, 10),
             nn.LogSoftmax(dim=1)
         )
