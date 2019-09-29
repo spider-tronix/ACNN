@@ -68,20 +68,20 @@ class BaseResNet(nn.Module):
 
         out1 = self.layer1(X)
 
-        identity2 = out1
+        identity1 = out1
         out2 = self.layer2(out1)
-        out2 += identity2
-        out2 = F.relu(out2, inplace=True)
+        out2 += identity1       # adding residual
+        F.relu(out2, inplace=True)
 
-        identity3 = self.downsample_2_3(out2)
+        identity2 = self.downsample_2_3(out2)
         out3 = self.layer3(out2)
-        out3 += identity3
-        out3 = F.relu(out3, inplace=True)
+        out3 += identity2
+        F.relu(out3, inplace=True)
 
-        identity4 = self.downsample_3_4(out3)
+        identity3 = self.downsample_3_4(out3)
         out4 = self.layer4(out3)
-        out4 += identity4
-        out4 = F.relu(out4, inplace=True)
+        out4 += identity3
+        F.relu(out4, inplace=True)
 
         out = self.avgpool(out4)
         out = torch.flatten(out, 1)
