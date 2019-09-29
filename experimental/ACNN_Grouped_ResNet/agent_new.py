@@ -9,7 +9,7 @@ def conv1x1(in_planes, out_planes, stride=1):
 
 def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
     """3x3 convolution with padding"""
-    return nn.Conv2d(in_planes, out_planes, kernel_size=5, stride=stride,
+    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
                      padding=dilation, groups=groups, bias=False, dilation=dilation)
 
 
@@ -160,6 +160,17 @@ class ACNNResNet(nn.Module):
         super().__init__()
         self.net1 = ResNetUnit()
         self.net2 = ResNetUnit()
+        # self.net2 = nn.Sequential(
+        #     nn.Conv2d(1, 16,
+        #               kernel_size=3, stride=1),
+        #     nn.ReLU(),
+        #     nn.Conv2d(16, 32,
+        #               kernel_size=5, stride=2),
+        #     nn.ReLU(),
+        #     nn.Conv2d(32, 64,
+        #               kernel_size=5, stride=2),
+        #     nn.ReLU()
+        # )
 
         self.fc = nn.Sequential(
             nn.Linear(512, 256),
@@ -169,7 +180,7 @@ class ACNNResNet(nn.Module):
             nn.Linear(128, 64),
             nn.ReLU(),
             nn.Linear(64, 10),
-            nn.LogSoftmax(dim=1)
+            # nn.LogSoftmax(dim=1)
         )
 
     def forward(self, X):
@@ -178,8 +189,8 @@ class ACNNResNet(nn.Module):
         :param X: Input dataset with batch dimension
         :return: Output of model and parameters
         """
-        out1 = self.net1(X)
-        out2 = self.net2(X)
+        out1 = F.relu(self.net1(X))
+        out2 = F.relu(self.net2(X))
 
         batch_size, c1, h1, w1 = out1.shape
         _, c2, h2, w2 = out2.shape

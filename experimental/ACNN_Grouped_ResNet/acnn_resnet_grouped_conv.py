@@ -1,9 +1,9 @@
 import torch
 import torch.optim as optim
 
-from experimental.ACNN_Grouped_ResNet.agent_new import ACNNResNet
 from utilities.data import load_data
 from utilities.train_helpers import train, test
+from experimental.ACNN_Grouped_ResNet.agent_new import ACNNResNet
 
 if __name__ == '__main__':
 
