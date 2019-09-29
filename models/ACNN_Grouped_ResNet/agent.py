@@ -2,12 +2,35 @@ from torch import nn
 # noinspection PyPep8Naming
 import torch.nn.functional as F
 
-from benchmarks.agents.vanilla_ResNet.resnet10 import ResNet
+from benchmarks.agents.vanilla_ResNet.resnet10 import ResNet, BasicBlock
+
+
+class BasicBlock(BasicBlock):
+
+    def __init__(self, *args):
+        super().__init__(*args)
+
+    @staticmethod
+    def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
+        """3x3 convolution with padding"""
+        return nn.Conv2d(in_planes, out_planes, kernel_size=5, stride=stride,
+                         padding=dilation, groups=groups, bias=False, dilation=dilation)
 
 
 class ResnetUnit(ResNet):
     def __init__(self, architecture=None, num_classes=10):
         super().__init__(architecture, num_classes)
+        self.inplanes = 16
+        norm_layer = nn.BatchNorm2d
+        self._norm_layer = norm_layer
+        self.conv1 = nn.Conv2d(1, 16,
+                               kernel_size=7, stride=2, padding=3,
+                               bias=False)
+        self.bn1 = norm_layer(16)
+        self.layer1 = self._make_layer(16, self.architecture[0])  # Layer 1
+        self.layer2 = self._make_layer(32, self.architecture[1], stride=1)  # Layer 2
+        self.layer3 = self._make_layer(64, self.architecture[2], stride=2)  # Layer 3
+        self.layer4 = self._make_layer(64, self.architecture[3], stride=2)  # Layer 4
 
     def forward(self, x):
         """
