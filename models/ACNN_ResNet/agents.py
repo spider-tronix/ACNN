@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 # noinspection PyPep8Naming
 import torch.nn.functional as F
-from models.connect_net import ConnectNet
+from utilities.connect_net import ConnectNet
 
 
 class AcnnResNet(nn.Module):

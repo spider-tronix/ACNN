@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from models.connect_net import ConnectNet
+from utilities.connect_net import ConnectNet
 
 
 class ACNN(nn.Module):
