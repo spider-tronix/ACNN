@@ -15,7 +15,7 @@ if __name__ == '__main__':
     learning_rate = 0.01
 
     # Loading Data
-    data_loc = r'../data/'
+    data_loc = r'E:\Datasets'
     train_loader, test_loader = load_data(data_loc, batch_size, download=False)
 
     # Tensorboard writer

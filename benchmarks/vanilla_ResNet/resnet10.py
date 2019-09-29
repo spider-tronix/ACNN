@@ -31,10 +31,10 @@ class BasicBlock(nn.Module):
         norm_layer = nn.BatchNorm2d
         self.downsample = downsample
 
-        self.conv1 = conv3x3(inplanes, planes, stride)
+        self.conv1 = self.conv3x3(inplanes, planes, stride)
         self.bn1 = norm_layer(planes)
         self.relu = nn.ReLU(inplace=True)
-        self.conv2 = conv3x3(planes, planes)
+        self.conv2 = self.conv3x3(planes, planes)
         self.bn2 = norm_layer(planes)
         self.stride = stride
 
@@ -61,6 +61,12 @@ class BasicBlock(nn.Module):
 
         return out
 
+    @staticmethod
+    def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
+        """3x3 convolution with padding"""
+        return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
+                         padding=dilation, groups=groups, bias=False, dilation=dilation)
+
 
 class ResNet(nn.Module):
     """Handles entire structure"""
@@ -75,6 +81,11 @@ class ResNet(nn.Module):
         norm_layer = nn.BatchNorm2d
         self._norm_layer = norm_layer
 
+        if architecture is None:
+            self.architecture = [1, 1, 1, 1]
+        else:
+            self.architecture = architecture
+
         self.inplanes = 64
         self.dilation = 1
 
@@ -84,10 +95,10 @@ class ResNet(nn.Module):
         self.bn1 = norm_layer(64)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = self._make_layer(64, architecture[0])  # Layer 1
-        self.layer2 = self._make_layer(128, architecture[1], stride=2)  # Layer 2
-        self.layer3 = self._make_layer(256, architecture[2], stride=2)  # Layer 3
-        self.layer4 = self._make_layer(512, architecture[3], stride=2)  # Layer 4
+        self.layer1 = self._make_layer(64, self.architecture[0])  # Layer 1
+        self.layer2 = self._make_layer(128, self.architecture[1], stride=2)  # Layer 2
+        self.layer3 = self._make_layer(256, self.architecture[2], stride=2)  # Layer 3
+        self.layer4 = self._make_layer(512, self.architecture[3], stride=2)  # Layer 4
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(512 * BasicBlock.expansion, num_classes)
         self._zero_init()
