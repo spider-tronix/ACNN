@@ -1,7 +1,7 @@
 import torch
 import torch.optim as optim
 
-from models.ACNN_Grouped_ResNet.agent import ACNNResNet
+from experimental.ACNN_Grouped_ResNet import ACNNResNet
 from utilities.data import load_data
 from utilities.train_helpers import train, test
 

@@ -1,7 +1,7 @@
 import torch
 import torch.optim as optim
 
-from grouped_conv import ACNN
+from models.ACNN_Grouped_CNN.grouped_conv import ACNN
 from utilities.data import load_data
 from utilities.train_helpers import train, test
 

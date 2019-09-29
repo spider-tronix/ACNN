@@ -40,8 +40,8 @@ def train(model: nn.Module, device,
 
             if writer is not None:
                 writer.add_scalar('training loss',  # writing to tensorboard
-                                running_loss / log_interval,
-                                (epoch - 1) * len(train_loader) + batch_idx)
+                                  running_loss / log_interval,
+                                  (epoch - 1) * len(train_loader) + batch_idx)
             running_loss = 0.0
 
     print('\nTraining Accuracy: {}/{} ({:.4f}%)'.format(correct, len(train_loader.dataset),
