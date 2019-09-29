@@ -7,10 +7,17 @@ class ACNN(nn.Module):
     """Branches of the Network"""
 
     def __init__(self,
-                 net1_channels=(1, 16, 32),
-                 net2_channels=(1, 16, 32, 64)):
+                 input_channels=1,
+                 net1_channels=None,
+                 net2_channels=None):
         super(ACNN, self).__init__()
 
+        if net2_channels is None:
+            net2_channels = [1, 16, 32, 64]
+        if net1_channels is None:
+            net1_channels = [1, 16, 32]
+        if input_channels != 1:
+            net1_channels[0], net2_channels[0] = input_channels, input_channels
         self.net1 = nn.Sequential(
             nn.Conv2d(net1_channels[0], net1_channels[1],
                       kernel_size=3, stride=1),
@@ -33,7 +40,7 @@ class ACNN(nn.Module):
         )
 
         self.fc = nn.Sequential(
-            nn.Linear(4096, 1024),
+            nn.Linear(5184, 1024),
             nn.ReLU(),
             nn.Linear(1024, 256),
             nn.ReLU(),
