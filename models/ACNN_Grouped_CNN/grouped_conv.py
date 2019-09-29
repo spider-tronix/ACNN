@@ -1,6 +1,6 @@
 import torch.nn as nn
 # noinspection PyPep8Naming
-import torch.nn.functional as F
+from utilities.train_helpers import grouped_conv
 
 
 class ACNN(nn.Module):
@@ -8,10 +8,8 @@ class ACNN(nn.Module):
 
     def __init__(self,
                  net1_channels=(1, 16, 32),
-                 net2_channels=(1, 16, 32, 64),
-                 device='cuda:0'):
+                 net2_channels=(1, 16, 32, 64)):
         super(ACNN, self).__init__()
-        self.device = device
 
         self.net1 = nn.Sequential(
             nn.Conv2d(net1_channels[0], net1_channels[1],
@@ -55,18 +53,7 @@ class ACNN(nn.Module):
         out1 = self.net1(X)
         out2 = self.net2(X)
 
-        batch_size, c1, h1, w1 = out1.shape
-        _, c2, h2, w2 = out2.shape
+        out3 = grouped_conv(out1, out2)
 
-        out2 = out2[:, :, None, :, :]
-        out2 = out2.repeat(1, 1, c1, 1, 1)
-
-        out3 = F.conv2d(
-            input=out1.view(1, batch_size * c1, h1, w1),
-            weight=out2.view(batch_size * c2, c1, h2, w2),
-            groups=batch_size
-        )
-
-        out3 = out3.reshape(batch_size, -1)
         out3 = self.fc(out3)
         return out3
