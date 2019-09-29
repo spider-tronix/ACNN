@@ -2,7 +2,7 @@ from torch import nn
 # noinspection PyPep8Naming
 import torch.nn.functional as F
 
-from experimental.ACNN_Grouped_ResNet.modded_resnet import BaseResNet
+from models.ACNN_Grouped_ResNet.modded_resnet import BaseResNet
 from utilities.train_helpers import grouped_conv
 
 
@@ -49,10 +49,19 @@ class ACNN(nn.Module):
             nn.ReLU()
         )
 
+        self.fc = nn.Sequential(
+            nn.Linear(64, 32),
+            nn.ReLU(),
+            nn.Linear(32, 16),
+            nn.ReLU(),
+            nn.Linear(16, 10),
+            nn.LogSoftmax(dim=1)
+        )
+
     def forward(self, X):
         out1 = self.net1(X)
         out2 = self.net2(X)
 
         out = grouped_conv(out1, out2)
 
-        return out
+        return self.fc(out)
