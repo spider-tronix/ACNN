@@ -1,55 +1,54 @@
-#--------------------------------------------------------------------------------------#
+# --------------------------------------------------------------------------------------#
 # 
 # Test to make sure the output of Grouped Convolution is same 
 # 	as the one using native for loops and F.conv2d.
 #
-#---------------------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------------------#
 
 
 import torch
+# noinspection PyPep8Naming
 import torch.nn.functional as F
 
 
+# noinspection PyShadowingNames
 def grouped_conv(img, filters):
+    batch_size, c_in, h1, w1 = img.shape
+    _, c_out, h2, w2 = filters.shape
 
-	batch_size, c_in, h1, w1 = img.shape
-	_, c_out, h2, w2 = filters.shape
+    filters = filters[:, :, None, :, :]
+    filters = filters.repeat(1, 1, c_in, 1, 1)
 
-	filters = filters[:, :, None, :, :]
-	filters = filters.repeat(1, 1, c_in, 1, 1)
-
-	return F.conv2d(
-	    input=img.view(1, batch_size * c_in, h1, w1),
-	    weight=filters.view(batch_size * c_out, c_in, h2, w2),
-	    groups=batch_size)
+    return F.conv2d(
+        input=img.view(1, batch_size * c_in, h1, w1),
+        weight=filters.view(batch_size * c_out, c_in, h2, w2),
+        groups=batch_size)
 
 
-def native_conv(img, filters):
-	
-	batch_size, c_in, h1, w1 = img.shape
-	_, c_out, h2, w2 = filters.shape
+# noinspection PyShadowingNames
+def native_conv(img, filters, device):
+    batch_size, c_in, h1, w1 = img.shape
+    _, c_out, h2, w2 = filters.shape
 
-	filters = filters[:, :, None, :, :]
-	filters = filters.repeat(1, 1, c_in, 1, 1)
+    filters = filters[:, :, None, :, :]
+    filters = filters.repeat(1, 1, c_in, 1, 1)
 
-	out = torch.zeros((batch_size, c_out, h1-h2+1, w1-w2+1))
+    out = torch.zeros((batch_size, c_out, h1 - h2 + 1, w1 - w2 + 1), device=device)
 
-	for i in range(batch_size):
-	    i_filter = filters[i]
-	    i_input = img[i][None, :, :, :]
-	    out[i] = F.conv2d(i_input, i_filter)
+    for i in range(batch_size):
+        i_filter = filters[i]
+        i_input = img[i][None, :, :, :]
+        out[i] = F.conv2d(i_input, i_filter)
 
-	return out
+    return out
+
 
 if __name__ == "__main__":
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    img = torch.rand((64, 256, 24, 24), device=device)  # standard output of net1
+    filters = torch.rand((64, 100, 3, 3), device=device)  # standard output of net2
 
-	device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-	img = torch.rand((64,256,24,24), device=device)  # standard output of net1
-	filters = torch.rand((64,100,3,3), device=device)   # standard output of net2
+    out1 = grouped_conv(img, filters)
+    out2 = native_conv(img, filters, device=device)
 
-	out1 = grouped_conv(img, filters)
-	out2 = native_conv(img, filters)
-
-	print(torch.allclose(out1.view_as(out2), out2))
-
-
+    print(torch.allclose(out1.view_as(out2), out2))

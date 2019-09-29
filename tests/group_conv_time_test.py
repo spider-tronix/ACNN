@@ -1,13 +1,13 @@
 """
 #--------------------------------------------------------------------------------------#
  
-Test to compare the timings(on GPU) of operations, Grouped Convolution and native convolution using For loop and F.conv2d. 
+Test to compare the timings(on GPU) of operations, Grouped Convolution and native convolution
+                            using For loop and F.conv2d.
 
 #---------------------------------------------------------------------------------------#
 """
 
 import timeit
-
 
 setup = '''
 
@@ -22,7 +22,7 @@ filters = torch.rand((64,100,3,3), device=device)   # standard output of net2
 '''
 
 group_conv = '''
-	
+
 batch_size, c_in, h1, w1 = img.shape
 _, c_out, h2, w2 = filters.shape
 
@@ -52,15 +52,20 @@ for i in range(batch_size):
 '''
 
 number = 1000
-print(f'Avg time for native_conv is : {timeit.timeit(setup=setup, stmt=native_conv, number=number)/number} seconds')
-print(f'Avg time for group_conv is : {timeit.timeit(setup=setup, stmt=group_conv, number=number)/number} seconds')
-
+print(f'Avg time for native_conv is : {timeit.timeit(setup=setup, stmt=native_conv, number=number) / number} seconds')
+print(f'Avg time for group_conv is : {timeit.timeit(setup=setup, stmt=group_conv, number=number) / number} seconds')
 
 """
 #--------------Output on Colab's GPU----------------------------#
 
-	Avg time for native_conv is : 0.040258811977000736 seconds
-	Avg time for group_conv is : 0.02103576725200037 seconds
-	
+    Avg time for native_conv is : 0.040258811977000736 seconds
+    Avg time for group_conv is : 0.02103576725200037 seconds
+
+#----------------------------------------------------------------#
+#--------------Output on NVidia 1050Ti----------------------------#
+
+Avg time for native_conv is : 0.033263043 seconds
+Avg time for group_conv is : 0.009609525000000004 seconds
+
 #----------------------------------------------------------------#
 """
