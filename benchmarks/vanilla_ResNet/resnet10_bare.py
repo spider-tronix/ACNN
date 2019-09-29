@@ -1,6 +1,7 @@
 import torch.nn as nn
 # noinspection PyPep8Naming
 import torch.nn.functional as F
+import torch
 
 
 class BaseResNet(nn.Module):
@@ -56,61 +57,30 @@ class BaseResNet(nn.Module):
 
         # TODO: Add Linear Layer dependant upon output
 
-        # self.downsample_4_5 = nn.Sequential(
-        #     nn.Conv2d(64, 64, 1, stride=2, bias=False),
-        #     nn.BatchNorm2d(64)
-        # )
-        #
-        # self.layer4 = nn.Sequential(
-        #     nn.Conv2d(32, 64, 3, stride=2, padding=1, bias=False),
-        #     nn.BatchNorm2d(64),
-        #     nn.ReLU(inplace=True),
-        #     nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)
-        # )
-
-        # self.classifier = nn.Sequential(
-        #     nn.Linear(22 * 22 * 256, 5120),
-        #     nn.ReLU(),
-        #     nn.Linear(5120, 2560),
-        #     nn.ReLU(),
-        #     nn.Linear(2560, 1024),
-        #     nn.ReLU(),
-        #     nn.Linear(1024, 256),
-        #     nn.ReLU(),
-        #     nn.Linear(256, 10),
-        #     nn.LogSoftmax()
-        # )
-
-    def forward(self, x):
+    # noinspection PyPep8Naming
+    def forward(self, X):
         """
         forward propagation logic
         """
 
-        x = self.conv1(x)
-        residual1 = x  # save input as residual
+        out1 = self.layer1(X)
 
-        x = self.block1(x)
-        x += residual1  # add residual to output of block 1
-        x = F.relu(x)  # perform relu non-linearity
-        residual2 = x  # update residual
+        identity2 = out1
+        out2 = self.layer2(out1)
+        out2 += identity2
+        out2 = F.relu(out2, inplace=True)
 
-        x = self.block2(x)
-        x += residual2
-        x = F.relu(x)
+        identity3 = self.downsample_2_3(out2)
+        out3 = self.layer3(out2)
+        out3 += identity3
+        out3 = F.relu(out3, inplace=True)
 
-        x = self.conv6(x)
-        residual3 = x  # update residual
+        identity4 = self.downsample_3_4(out3)
+        out4 = self.layer4(out3)
+        out4 += identity4
+        out4 = F.relu(out4, inplace=True)
 
-        x = self.block3(x)
-        x += residual3
-        x = F.relu(x)
+        out = self.avgpool(out4)
+        out = torch.flatten(out, 1)
 
-        x = self.conv9(x)
-        residual4 = x
-
-        x = self.block4(x)
-        x += residual4
-        out1 = F.relu(x)
-
-        out1 = out1.view(out1.shape[0], -1)
-        return self.classifier(out1)
+        return out
