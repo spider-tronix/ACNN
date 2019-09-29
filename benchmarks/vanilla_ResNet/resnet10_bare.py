@@ -1,7 +1,7 @@
+import torch
 import torch.nn as nn
 # noinspection PyPep8Naming
 import torch.nn.functional as F
-import torch
 
 
 class BaseResNet(nn.Module):
@@ -55,7 +55,10 @@ class BaseResNet(nn.Module):
 
         self.avgpool = nn.AdaptiveAvgPool2d(output_size=(1, 1))
 
-        # TODO: Add Linear Layer dependant upon output
+        self.fc = nn.Sequential(
+            nn.Linear(64, 10),
+            nn.LogSoftmax(dim=1)
+        )
 
     # noinspection PyPep8Naming
     def forward(self, X):
@@ -82,5 +85,6 @@ class BaseResNet(nn.Module):
 
         out = self.avgpool(out4)
         out = torch.flatten(out, 1)
+        out = self.fc(out)
 
         return out

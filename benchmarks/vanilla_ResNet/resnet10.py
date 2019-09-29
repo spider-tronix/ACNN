@@ -1,7 +1,7 @@
 import torch
-from torch import nn
 # noinspection PyPep8Naming
 import torch.nn.functional as F
+from torch import nn
 
 
 def conv1x1(in_planes, out_planes, stride=1):
@@ -173,6 +173,3 @@ def resnet(architecture=None, num_classes=10):
         architecture = [1, 1, 1, 1]
     model = ResNet(architecture, num_classes=num_classes)
     return model
-
-model = resnet()
-print("Done")
