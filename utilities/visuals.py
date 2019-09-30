@@ -99,7 +99,7 @@ def plot_logs(logger, training_dir, test=False):
 def write_csv(logger, train_dir, test=False):
     file_name = "test" if test else "train"
     step, loss, accuracy = logger  # Unpack values
-    logs = np.hstack((step, loss, accuracy))
+    logs = np.vstack((step, loss, accuracy)).T
     log_df = pd.DataFrame(logs, columns=['step', 'loss', 'accuracy'])
     log_df.to_csv(f'{train_dir}/{file_name}.csv')  # Write to CSV
     # columns=[..] in to_csv doesnt generate cols: it selects
