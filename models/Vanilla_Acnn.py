@@ -3,7 +3,7 @@ import torch.nn as nn
 from utilities.train_helpers import grouped_conv
 
 
-class ACNN(nn.Module):
+class VanillaACNN(nn.Module):
     """Branches of the Network"""
 
     def __init__(self, net1_channels, net2_channels,
@@ -11,7 +11,7 @@ class ACNN(nn.Module):
                  net1_strides, net2_strides,
                  fc_units):
 
-        super(ACNN, self).__init__()
+        super(VanillaACNN, self).__init__()
 
         # --------------------Features network------------------------#
 

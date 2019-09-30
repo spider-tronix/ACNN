@@ -35,9 +35,9 @@ class ACNNResNet(BaseResNet):
 
 
 # noinspection PyPep8Naming
-class ACNN(nn.Module):
+class ACNN_ResNet(nn.Module):
     def __init__(self):
-        super(ACNN, self).__init__()
+        super(ACNN_ResNet, self).__init__()
         self.net1 = ACNNResNet()
 
         self.net2 = nn.Sequential(
