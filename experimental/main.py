@@ -1,6 +1,7 @@
 import os
 import time
 from os import path
+import pandas as pd 
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -64,9 +65,11 @@ if __name__ == '__main__':
     if train_logger is not None:  # TODO: Move to visuals
         step, train_loss, train_accuracy = train_logger  # Unpack values
 
-        train_logs = np.vstack((step, train_loss, train_accuracy))
+        train_logs = np.hstack((step, train_loss, train_accuracy))
         # noinspection PyTypeChecker
-        np.savetxt(training_dir + "/train.csv", train_logs, delimiter=",")  # Write to CSV
+        log_df = pd.DataFrame(train_logs)  
+        log_df.to_csv(training_dir + "/train.csv",
+                        columns=['step', 'train_loss', 'train_accuracy'])  # Write to CSV
 
         plt.figure(figsize=(5, 10))  # Make a 1:2 figure
 
