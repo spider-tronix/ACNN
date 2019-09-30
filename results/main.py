@@ -2,7 +2,7 @@ import torch
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 
-from models.ACNN_Grouped_CNN.grouped_conv import ACNN
+from models.Vanilla_Acnn import ACNN
 from utilities.data import load_data
 from utilities.train_helpers import train, test
 
