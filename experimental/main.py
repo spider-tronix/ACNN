@@ -2,12 +2,12 @@ import numpy as np
 import torch
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
+import matplotlib.pyplot as plt
 
 from models.Vanilla_Acnn import ACNN
 from utilities.data import load_data
 from utilities.train_helpers import test, default_config
 from experimental.three import train
-
 
 if __name__ == '__main__':
     dataset = 'MNIST'
@@ -19,6 +19,7 @@ if __name__ == '__main__':
     batch_size = 64
     learning_rate = 0.01
     graphs = False
+    logger_location = '/data/summary/mnist_resnet_1'
     download = False
     torch.manual_seed(0)
 
@@ -32,7 +33,7 @@ if __name__ == '__main__':
 
     # Tensorboard writer
     if graphs:
-        writer = SummaryWriter('/data/summary/mnist_resnet_1')
+        writer = SummaryWriter(logger_location)
 
         step = np.array([])
         train_loss = np.array([])
@@ -45,3 +46,15 @@ if __name__ == '__main__':
     for epoch in range(1, epochs + 1):
         train_logger = train(model, device, train_loader, optimizer, epoch, 100, writer, train_logger)
         test(model, device, test_loader, epoch, writer)
+
+    if train_logger is not None:
+        train_logs = np.vstack(*train_logger)
+        np.savetxt(logger_location + "train.csv", train_logs, delimiter=",")
+
+        plt.figure()
+        plt.subplot(211)
+        plt.plot(train_logger[0], train_logger[1])
+        plt.subplot(212)
+        plt.plot(train_logger[0], train_logger[2])
+        plt.savefig(logger_location + "train")
+
