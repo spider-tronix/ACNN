@@ -4,6 +4,7 @@ import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 import matplotlib.pyplot as plt
 
+
 from models.Vanilla_Acnn import ACNN
 from utilities.data import load_data
 from utilities.train_helpers import test, default_config
@@ -15,7 +16,7 @@ if __name__ == '__main__':
 
     # HyperParams and Others
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    epochs = 3
+    epochs = 1
     batch_size = 64
     learning_rate = 0.01
     graphs = True
@@ -46,12 +47,24 @@ if __name__ == '__main__':
 
     if train_logger is not None:
         step, train_loss, train_accuracy = train_logger
-        train_logs = np.hstack((step, train_loss, train_accuracy))
+        train_logs = np.vstack((step, train_loss, train_accuracy))
         np.savetxt(logger_location + "train.csv", train_logs, delimiter=",")
 
-        plt.figure()
+        plt.figure(figsize=(5, 10))
         plt.subplot(211)
         plt.plot(train_logger[0], train_logger[1])
+        plt.xlabel('Steps')
+        plt.ylabel('Loss')
+        plt.title('Train Loss')
+        # plt.text()    # TODO: Add name and hyoerparams
+        plt.axis([0, step[-1], 0, 1.5])
+        plt.grid(True)
         plt.subplot(212)
         plt.plot(train_logger[0], train_logger[2])
+        plt.xlabel('Steps')
+        plt.ylabel('Acc')
+        plt.title('Train Acc')
+        # plt.text()    # TODO: Add name and hyoerparams
+        plt.axis([0, step[-1], 85, 100])
+        plt.grid(True)
         plt.savefig(logger_location + "train")
