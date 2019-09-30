@@ -32,11 +32,7 @@ if __name__ == '__main__':
     # Tensorboard writer
     if graphs:
         writer = SummaryWriter(logger_location)
-
-        step = np.array([])
-        train_loss = np.array([])
-        train_accuracy = np.array([])
-        train_logger = (step, train_loss, train_accuracy)
+        train_logger = (np.array([]), np.array([]), np.array([]))
     else:
         writer = None
         train_logger = None
