@@ -24,9 +24,10 @@ def write_to_readme(batch_size, lr, seed, epochs, run_time, train_dir):
 - Learning Rate = {lr}
 - Best Accuracy:
     - Step = {step}
-    - Train Accuracy = {acc}
-    - Train loss = {loss}
-    - Training time = {run_time}s ≈ {int(run_time) / 60} min
+    - Train Accuracy = {acc:.4f}
+    - Train loss = {loss:.6f}
+    - Training time = {run_time:.2f}s ≈ {int(run_time / 60)} min
+    
 ![Graphs](train.png)
 """
     with open(os.path.join(train_dir, 'README.md'),
