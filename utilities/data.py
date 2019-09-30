@@ -15,8 +15,8 @@ def load_data(data_loc, batch_size, download=False, dataset='MNIST'):
     train_dataset = None
     test_dataset = None
 
-    if dataset not in ['MNIST', 'SVHN']:
-        raise NotImplementedError('Only MNIST and SVHN')
+    if dataset not in ['MNIST', 'SVHN', 'CIFAR10']:
+        raise NotImplementedError('Only MNIST/SVHN/CIFAR10')
 
     t = transforms.Compose([transforms.ToTensor(), transforms.Normalize((0.1307,), (0.3081,))])
     if dataset == 'MNIST':
@@ -25,8 +25,8 @@ def load_data(data_loc, batch_size, download=False, dataset='MNIST'):
     elif dataset == 'SVHN':
         train_dataset = datasets.SVHN(root=data_loc, split='train', transform=t, download=download)
         test_dataset = datasets.SVHN(root=data_loc, split='test', transform=t, download=download)
-
-    train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
+    elif dataset == 'CIFAR10':
+        train_dataset = datasets.CIFAR10(root=data_loc, train=True, transform=t, download=download)
+        test_dataset = datasets.CIFAR10(root=data_loc, train=False, transform=t, download=download)
 
     return train_loader, test_loader
