@@ -29,4 +29,7 @@ def load_data(data_loc, batch_size, download=False, dataset='MNIST'):
         train_dataset = datasets.CIFAR10(root=data_loc, train=True, transform=t, download=download)
         test_dataset = datasets.CIFAR10(root=data_loc, train=False, transform=t, download=download)
 
+    train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False)
+
     return train_loader, test_loader
