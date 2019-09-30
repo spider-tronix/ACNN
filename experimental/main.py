@@ -8,14 +8,9 @@ import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 
 from experimental.one import get_directories
-<<<<<<< HEAD
-from experimental.three import train
-from experimental.two import write_to_readme
-=======
-from experimental.two import write_to_Readme
 from experimental.three import train, test
+from experimental.two import write_to_readme
 
->>>>>>> ad9b929f607066fbc53afc41ca6d72a45ebae266
 from models.Vanilla_Acnn import VanillaACNN
 from utilities.data import load_data
 from utilities.train_helpers import default_config
@@ -57,7 +52,7 @@ if __name__ == '__main__':
         train_logger = (np.array([]), np.array([]), np.array([]))  # Handles the creation of png, csv logs
         test_logger = (np.array([]), np.array([]), np.array([]))
     else:  # Avoid weak warnings
-        writer, train_logger, test_logger = None, None, None        
+        writer, train_logger, test_logger = None, None, None
 
     tick = time.time()
     for epoch in range(1, epochs + 1):
@@ -65,30 +60,19 @@ if __name__ == '__main__':
                              train_loader,
                              optimizer, epoch,
                              log_interval=100, writer=writer, logger=train_logger)
-<<<<<<< HEAD
-        test(model, device,  # Evaluation Loop
-             test_loader, epoch,
-             writer=writer)
-    run_time = tick - time.time()
 
-    if train_logger is not None:  # Save log plots
-        plot_logs(train_logger, training_dir)
-
-    write_to_readme(batch_size, learning_rate, seed, epochs, training_dir)  # write to Readme.md
-=======
         test_logger = test(model, device,  # Evaluation Loop
-                            test_loader, epoch,
-                            writer=writer, logger=test_logger)
-    run_time = tick - time.time()   
+                           test_loader, epoch,
+                           writer=writer, logger=test_logger)
+    run_time = tick - time.time()
 
     if graphs:  # Plot log to graphs
         plot_logs(train_logger, training_dir)
         plot_logs(test_logger, training_dir, test=True)
-    
-    if csv:     # Save logs to csv
+
+    if csv:  # Save logs to csv
         write_csv(train_logger, training_dir)
         write_csv(test_logger, training_dir, test=True)
-    
-    write_to_Readme(batch_size, learning_rate, seed,   # write to Readme.md 
-                    epochs, time, training_dir) 
->>>>>>> ad9b929f607066fbc53afc41ca6d72a45ebae266
+
+    write_to_readme(batch_size, learning_rate, seed,  # write to Readme.md
+                    epochs, time, training_dir)
