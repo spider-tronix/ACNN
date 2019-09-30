@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 import torch
 import os
 from PIL import Image
@@ -68,33 +69,38 @@ def save(features, filters, data, dir, features_resize, filters_resize):
             f_i.save(f'{filters_dir}/filter_{j}.jpg')
 
 
-def plot_logs(train_logger, training_dir):
-    step, train_loss, train_accuracy = train_logger  # Unpack values
+def plot_logs(logger, training_dir, test=False):
+        
+    file_name = "test" if test else "train"
+    step, _, _ = logger  # Unpack values
+    
+    plt.figure(figsize=(5, 10))  # Make a 1:2 figure
 
-        train_logs = np.hstack((step, train_loss, train_accuracy))
-        # noinspection PyTypeChecker
-        log_df = pd.DataFrame(train_logs)  
-        log_df.to_csv(training_dir + "/train.csv",
-                        columns=['step', 'train_loss', 'train_accuracy'])  # Write to CSV
+    plt.subplot(211)
+    plt.plot(logger[0], logger[1])
+    plt.xlabel('Steps')
+    plt.ylabel('Loss')
+    plt.title('Test Loss' if test else 'Train Loss')
+    # plt.text()    # TODO: Add name and hyperparams
+    plt.axis([0, step[-1], 0, 1.5])
+    plt.grid(True)
 
-        plt.figure(figsize=(5, 10))  # Make a 1:2 figure
+    plt.subplot(212)
+    plt.plot(logger[0], logger[2])
+    plt.xlabel('Steps')
+    plt.ylabel('Acc')
+    plt.title('Test Accuracy' if test else 'Train Accuracy')
+    # plt.text()    # TODO: Add name and hyperparams
+    plt.axis([0, step[-1], 85, 100])
+    plt.grid(True)
 
-        plt.subplot(211)
-        plt.plot(train_logger[0], train_logger[1])
-        plt.xlabel('Steps')
-        plt.ylabel('Loss')
-        plt.title('Train Loss')
-        # plt.text()    # TODO: Add name and hyperparams
-        plt.axis([0, step[-1], 0, 1.5])
-        plt.grid(True)
+    plt.savefig(f'{training_dir}/{file_name}')  # Write to PNG
 
-        plt.subplot(212)
-        plt.plot(train_logger[0], train_logger[2])
-        plt.xlabel('Steps')
-        plt.ylabel('Acc')
-        plt.title('Train Acc')
-        # plt.text()    # TODO: Add name and hyperparams
-        plt.axis([0, step[-1], 85, 100])
-        plt.grid(True)
 
-        plt.savefig(training_dir + "/train")  # Write to PNG
+def write_csv(logger, train_dir, file_name, logs, test=False):
+    file_name = "test" if test else "train"
+    step, loss, accuracy = logger  # Unpack values
+    logs = np.hstack((step, loss, accuracy))   
+    log_df = pd.DataFrame(logs) 
+    log_df.to_csv(f'{train_dir}/{file_name}.csv',
+                    columns=['step', 'loss', 'accuracy'])  # Write to CSV
