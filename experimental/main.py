@@ -15,11 +15,11 @@ if __name__ == '__main__':
 
     # HyperParams and Others
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    epochs = 30
+    epochs = 3
     batch_size = 64
     learning_rate = 0.01
-    graphs = False
-    logger_location = '/data/summary/mnist_resnet_1'
+    graphs = True
+    logger_location = 'testing1/'
     download = False
     torch.manual_seed(0)
 
@@ -28,8 +28,6 @@ if __name__ == '__main__':
     # Loading Data
     data_loc = r'E:\Datasets'
     train_loader, test_loader = load_data(data_loc, batch_size, download=download, dataset=dataset)
-    writer = None
-    train_logger = None
 
     # Tensorboard writer
     if graphs:
@@ -39,6 +37,9 @@ if __name__ == '__main__':
         train_loss = np.array([])
         train_accuracy = np.array([])
         train_logger = (step, train_loss, train_accuracy)
+    else:
+        writer = None
+        train_logger = None
 
     model = ACNN(*default_config(dataset=dataset, model=model)).to(device=device)
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
@@ -48,7 +49,8 @@ if __name__ == '__main__':
         test(model, device, test_loader, epoch, writer)
 
     if train_logger is not None:
-        train_logs = np.vstack(*train_logger)
+        step, train_loss, train_accuracy = train_logger
+        train_logs = np.hstack((step, train_loss, train_accuracy))
         np.savetxt(logger_location + "train.csv", train_logs, delimiter=",")
 
         plt.figure()
@@ -57,4 +59,3 @@ if __name__ == '__main__':
         plt.subplot(212)
         plt.plot(train_logger[0], train_logger[2])
         plt.savefig(logger_location + "train")
-

@@ -23,7 +23,7 @@ class ACNN(nn.Module):
                                                             net1_channels[i + 1],
                                                             net1_kernels_size[i],
                                                             stride=net1_strides[i]))
-            self.net1.add(f'net1_relu{i}', nn.ReLU())
+            self.net1.add_module(f'net1_relu{i}', nn.ReLU())
 
         # --------------------Filters network------------------------#
 
@@ -35,7 +35,7 @@ class ACNN(nn.Module):
                                                             net2_channels[i + 1],
                                                             net2_kernels_size[i],
                                                             stride=net2_strides[i]))
-            self.net2.add(f'net2_relu{i}', nn.ReLU())
+            self.net2.add_module(f'net2_relu{i}', nn.ReLU())
 
         # --------------------Classifier ---------------------------#
 
