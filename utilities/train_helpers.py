@@ -1,16 +1,22 @@
+import os
+from os import path
+
+import numpy as np
 import torch
 import torch.nn as nn
 # noinspection PyPep8Naming
 import torch.nn.functional as F
+# noinspection PyPep8Naming
 from torch.utils.data import DataLoader
 
 
 def train(model: nn.Module, device,
           train_loader: torch.utils.data.DataLoader,
           optimizer: torch.optim.SGD,
-          epoch, log_interval, writer=None):
+          epoch, log_interval, writer=None, logger=None):
     """
     Performs one epoch of training on model
+    :param logger:
     :param model: Model class
     :param device: Device to train on. Use 'cuda:0' for GPU acceleration
     :param train_loader: Iterable dataset
@@ -18,44 +24,61 @@ def train(model: nn.Module, device,
     :param epoch: Epoch number for logging purpose
     :param log_interval: Print stats for every
     :param writer: Tensorboard writer to track training accuracy
-    :return:
+    :param logger: Tuple of numpy array to log values
+    :return: new logger
     """
+    if logger is not None:
+        step_log, loss_log, acc_log = logger
+    else:
+        step_log, loss_log, acc_log = None, None, None
+
     model.train()
     running_loss = 0.0
     correct = 0
 
     for batch_idx, (data, target) in enumerate(train_loader, start=1):
         data, target = data.to(device), target.to(device)
-        
-        output = model(data)    # Foward Prop
+
+        output = model(data)  # Foward Prop
         loss = F.nll_loss(output, target)
-        
+
         optimizer.zero_grad()
         loss.backward()
-        optimizer.step()    # Backprop
+        optimizer.step()  # Backprop
         # Logging
         pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
         correct += pred.eq(target.view_as(pred)).sum().item()
         running_loss += loss.item()
-        
+
         if batch_idx % log_interval == 0:
             print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                 epoch, batch_idx * len(data), len(train_loader.dataset), 100. * batch_idx / len(train_loader),
                 loss.item()))
 
+            global_step = (epoch - 1) * len(train_loader) + batch_idx
+            l = running_loss / log_interval
+            a = 100. * correct / (batch_idx * len(data))
+
             if writer is not None:
-                global_step = (epoch - 1) * len(train_loader) + batch_idx
-                writer.add_scalar('Training Loss', running_loss / log_interval, global_step)  # write to tensorboard summary
-                writer.add_scalar('Training Accuracy', 100. * correct/(batch_idx * len(data)), global_step)
+                writer.add_scalar('Training Loss', l,
+                                  global_step)  # write to tensorboard summary
+                writer.add_scalar('Training Accuracy', a, global_step)
+
+            if logger is not None:
+                step_log = np.append(step_log, global_step)
+                acc_log = np.append(acc_log, a)
+                loss_log = np.append(loss_log, l)
 
             running_loss = 0.0
 
     print('\nTraining Accuracy: {}/{} ({:.4f}%)'.format(correct, len(train_loader.dataset),
                                                         100. * correct / len(train_loader.dataset)))
 
+    return step_log, loss_log, acc_log
 
-def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader, 
-        epoch, writer=None):
+
+def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader,
+         epoch, writer=None, logger=None):
     """
     Performs evaluation on dataset
     :param model: Model Class
@@ -63,8 +86,15 @@ def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader,
     :param test_loader: Iterable Dataset
     :param epoch: epoch number
     :param writer: Tensorboard writer to track test accuracy
+    :param logger: Tuple of numpy array to log values
     :return:
     """
+
+    if logger is not None:
+        step_log, loss_log, acc_log = logger
+    else:
+        step_log, loss_log, acc_log = None, None, None
+
     model.eval()
     test_loss = 0
     correct = 0
@@ -79,12 +109,19 @@ def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader,
     test_loss /= len(test_loader.dataset)
     test_acc = 100. * correct / len(test_loader.dataset)
 
-    if writer is not None:  # Logging
+    if writer is not None:  # Tensorboard Logging
         writer.add_scalar('Test Loss (/epoch)', test_loss, epoch)
         writer.add_scalar('Test Accuracy (/epoch)', test_acc, epoch)
 
+    if logger is not None:  # Manual Logging
+        step_log = np.append(step_log, epoch)
+        acc_log = np.append(acc_log, test_acc)
+        loss_log = np.append(loss_log, test_loss)
+
     print('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset), test_acc))
+
+    return step_log, loss_log, acc_log
 
 
 # noinspection PyShadowingNames
@@ -140,3 +177,38 @@ def default_config(model, dataset):
            net1_kernels_size, net2_kernels_size, \
            net1_strides, net2_strides, \
            fc_units
+
+
+def get_directories(model, dataset, parent_dir):
+    """
+    Returns paths to save training logs
+    :param model: Instance of the model class
+    :param dataset: String containing dataset name
+    :param parent_dir: dir where sub directories are to be made
+    :return: Training_dir and Tensorboard_dir, for saving required files
+    """
+
+    if dataset not in ['MNIST', 'CIFAR10', 'SVHN']:
+        raise NotImplementedError('Only MNIST/SVHN/CIFAR10')
+
+    model_name = model.__class__.__name__
+    parent_dir = os.path.abspath(parent_dir)
+    dataset_dir = os.path.join(parent_dir, dataset)
+    model_dir = os.path.join(dataset_dir, model_name)
+
+    if not path.exists(dataset_dir):
+        os.mkdir(dataset_dir)
+
+    if not path.exists(model_dir):
+        os.mkdir(model_dir)
+
+    i = 1
+    while True:
+        training_dir = os.path.join(model_dir, f'Training_{i}')
+        if not path.exists(training_dir):  # TODO: next(os.walk(model_dir))[1] is more optimized. To be replaced with it
+            os.mkdir(training_dir)
+            break
+        i += 1
+
+    tensorboard_dir = os.path.join(training_dir, 'Tensorboard_Summary')
+    return training_dir, tensorboard_dir
