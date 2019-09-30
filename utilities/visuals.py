@@ -97,7 +97,7 @@ def plot_logs(logger, training_dir, test=False):
     plt.savefig(f'{training_dir}/{file_name}')  # Write to PNG
 
 
-def write_csv(logger, train_dir, file_name, logs, test=False):
+def write_csv(logger, train_dir, test=False):
     file_name = "test" if test else "train"
     step, loss, accuracy = logger  # Unpack values
     logs = np.hstack((step, loss, accuracy))   
