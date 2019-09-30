@@ -60,9 +60,9 @@ def train(model: nn.Module, device,
                 writer.add_scalar('Training Accuracy', a, global_step)
 
             if logger is not None:
-                np.append(step, global_step)
-                np.append(train_accuracy, a)
-                np.append(train_loss, l)
+                step = np.append(step, global_step)
+                train_accuracy = np.append(train_accuracy, a)
+                train_loss = np.append(train_loss, l)
 
             running_loss = 0.0
 
