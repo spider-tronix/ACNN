@@ -110,6 +110,7 @@ def default_config(model, dataset):
             net2_kernels_size = (3, 5, 5)
             net1_strides = (1, 2)
             net2_strides = (1, 2, 2)
+            fc_units = (4096, 1024, 256, 64, 10)
         elif dataset == 'CIFAR10':
             pass
         elif dataset == 'SVHN':
@@ -124,4 +125,4 @@ def default_config(model, dataset):
     
     return net1_channels, net2_channels, 
             net1_kernels_size, net2_kernels_size, 
-            net1_strides, net2_strides
+            net1_strides, net2_strides, fc_units
