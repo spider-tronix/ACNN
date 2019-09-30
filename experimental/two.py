@@ -1,8 +1,12 @@
 import os
 import pandas as pd
 
+<<<<<<< HEAD
 
 def write_to_readme(batch_size, lr, seed, epochs, train_dir):
+=======
+def write_to_Readme(batch_size, lr, seed, epochs, time, train_dir):
+>>>>>>> ad9b929f607066fbc53afc41ca6d72a45ebae266
     """
     Writes the hyperparams and log stats to Readme.md file
     batch_size: batch_size used
@@ -26,6 +30,7 @@ def write_to_readme(batch_size, lr, seed, epochs, train_dir):
     - Step = {step}
     - Train Accuracy = {acc}
     - Train loss = {loss}
+    - Training time = {time}s ≈ {int(time/60)} min
 ![Graphs](train.png)
 """
     with open('README.md', 'w') as file:
