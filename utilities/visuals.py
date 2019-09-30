@@ -70,10 +70,9 @@ def save(features, filters, data, dir, features_resize, filters_resize):
 
 
 def plot_logs(logger, training_dir, test=False):
-        
     file_name = "test" if test else "train"
     step, _, _ = logger  # Unpack values
-    
+
     plt.figure(figsize=(5, 10))  # Make a 1:2 figure
 
     plt.subplot(211)
@@ -100,7 +99,7 @@ def plot_logs(logger, training_dir, test=False):
 def write_csv(logger, train_dir, test=False):
     file_name = "test" if test else "train"
     step, loss, accuracy = logger  # Unpack values
-    logs = np.hstack((step, loss, accuracy))   
-    log_df = pd.DataFrame(logs) 
-    log_df.to_csv(f'{train_dir}/{file_name}.csv',
-                    columns=['step', 'loss', 'accuracy'])  # Write to CSV
+    logs = np.hstack((step, loss, accuracy))
+    log_df = pd.DataFrame(logs, columns=['step', 'loss', 'accuracy'])
+    log_df.to_csv(f'{train_dir}/{file_name}.csv')  # Write to CSV
+    # columns=[..] in to_csv doesnt generate cols: it selects
