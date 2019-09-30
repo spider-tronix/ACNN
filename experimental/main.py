@@ -67,4 +67,5 @@ if __name__ == '__main__':
 
     if train_logger is not None:    # Save log plots
         plot_logs(train_logger, training_dir)
-        
+    
+    write_to_Readme(batch_size, learning_rate, seed, epochs, training_dir) # write to Readme.md
