@@ -3,7 +3,7 @@ from torch.nn.modules.padding import ConstantPad3d
 
 
 class ConnectNet(torch.nn.Module):
-    def __init__(self, kernel_size, strides=1, padding='valid', device='cuda:0'):
+    def __init__(self, kernel_size, strides=1, padding='valid', device='cuda:0', activation=None):
         """
         Parameters:
             kernel_size : tuple, dimension of kernel/filter
@@ -18,6 +18,7 @@ class ConnectNet(torch.nn.Module):
         self.s = strides
         self.padding = padding
         self.device = device
+        self.activation = activation
 
     def forward(self, x, kernels):
         """
@@ -47,7 +48,7 @@ class ConnectNet(torch.nn.Module):
         k_col = kernels.view(C_out, -1)  # converted to 2d tensor
         k_col = k_col.to(device=self.device, dtype=torch.float)  # to gpu
         x_out = torch.mm(k_col, x_col).view(C_out, h_out, w_out)  # convolution
-        return x_out
+        return self.activation(x_out) if self.activation else x_out
 
     def pad_tensor(self, x):
         """

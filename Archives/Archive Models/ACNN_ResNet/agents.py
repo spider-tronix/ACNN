@@ -127,9 +127,15 @@ class AcnnResNet(nn.Module):
         for i in range(batch_size):
             i_out2 = torch.squeeze(out2[i])[:, None, :, :]
             i_out2 = i_out2.repeat(1, c_in, 1, 1)  # broadcasting
-            out3[i] = self.connect_net(out1[i], i_out2)
+            out3[i] = self.ConnectNet(out1[i], i_out2)
 
-        # TODO: Perform Relu operation on connect net's output        
+        # TODO: Perform Relu operation on connect net's output
+        # relu = nn.ReLU()
+        # for i in range(batch_size):
+        #     i_out2 = torch.squeeze(out2[i])[:, None, :, :]
+        #     i_out2 = i_out2.repeat(1, c_in, 1, 1)  # broadcasting
+        #     out3[i] = self.ConnectNet(out1[i], i_out2, relu)
+
         # ---------------------Classifier network----------------------------#
 
         # out3 = out3.reshape(batch_size, -1)
