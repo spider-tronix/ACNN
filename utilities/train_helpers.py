@@ -87,3 +87,41 @@ def grouped_conv(img, filters):
         weight=filters.view(batch_size * c_out, c_in, h2, w2),
         groups=batch_size
     ).reshape(batch_size, -1)
+
+
+def default_config(model, dataset):
+    """
+    Returns default layers used for testing that model works.
+    :param model: Model Class
+    :param dataset: Dataset Used for Training model
+    :return: default channels, kernel sizes and stirdes for both networks   
+    """
+    if model not in ['Vanilla_ACNN', 'ACNN_ResNet']:
+        raise NotImplementedError('Only Vanilla_ACNN/ACNN_ResNet') 
+
+    if dataset not in ['MNIST', 'CIFAR10', 'SVHN']:
+        raise NotImplementedError('Only MNIST/SVHN/CIFAR10')
+
+    if model == 'Vanilla_ACNN':
+        if dataset == 'MNIST':
+            net1_channels=(1, 16, 32)
+            net2_channels=(1, 16, 32, 64)
+            net1_kernels_size = (3, 5)
+            net2_kernels_size = (3, 5, 5)
+            net1_strides = (1, 2)
+            net2_strides = (1, 2, 2)
+        elif dataset == 'CIFAR10':
+            pass
+        elif dataset == 'SVHN':
+            pass
+    elif model == 'ACNN_ResNet':
+        if dataset == 'MNIST':
+            pass
+        elif dataset == 'CIFAR10':
+            pass
+        elif dataset == 'SVHN':
+            pass
+    
+    return net1_channels, net2_channels, 
+            net1_kernels_size, net2_kernels_size, 
+            net1_strides, net2_strides

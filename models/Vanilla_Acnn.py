@@ -6,31 +6,33 @@ from utilities.train_helpers import grouped_conv
 class ACNN(nn.Module):
     """Branches of the Network"""
 
-    def __init__(self,
-                 net1_channels=(1, 16, 32),
-                 net2_channels=(1, 16, 32, 64)):
+    def __init__(self, net1_channels, 
+                net2_channels
+                net1_kernels_size, 
+                net2_kernels_size,
+                net1_strides, 
+                net2_strides):
+
         super(ACNN, self).__init__()
 
-        self.net1 = nn.Sequential(
-            nn.Conv2d(net1_channels[0], net1_channels[1],
-                      kernel_size=3, stride=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(net1_channels[1], net1_channels[2],
-                      kernel_size=5, stride=2),
-            nn.ReLU()
-        )
+        self.net1 = nn.Sequential()
+        
+        num_layers1 = len(net1_channels) - 1
+        for i in range(num_layers1):
+            self.net1.add_module(f'net1_conv{i}', nn.Conv2d(net1_channels[i], 
+                                    net1_channels[i+1],
+                                    kernel_size=net1_kernels_size[i], 
+                                    stride=net1_strides[i]))    
+            self.net1.add(f'net1_relu{i}', nn.ReLU(inplace=True))
+            
 
-        self.net2 = nn.Sequential(
-            nn.Conv2d(net2_channels[0], net2_channels[1],
-                      kernel_size=3, stride=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(net2_channels[1], net2_channels[2],
-                      kernel_size=5, stride=2),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(net2_channels[2], net2_channels[3],
-                      kernel_size=5, stride=2),
-            nn.ReLU()
-        )
+        num_layers2 = len(net2_channels) - 1
+        for i in range(num_layers2):
+            self.net1.add_module(f'net2_conv{i}', nn.Conv2d(net2_channels[i], 
+                                    net2_channels[i+1],
+                                    kernel_size=net2_kernels_size[i], 
+                                    stride=net2_strides[i]))    
+            self.net1.add(f'net2_relu{i}', nn.ReLU(inplace=True))
 
         self.fc = nn.Sequential(
             nn.Linear(4096, 1024),
