@@ -1,4 +1,5 @@
 import os
+import time
 from os import path
 
 import matplotlib.pyplot as plt
@@ -49,6 +50,7 @@ if __name__ == '__main__':
         writer = None
         train_logger = None
 
+    tick = time.time()
     for epoch in range(1, epochs + 1):
         train_logger = train(model, device,  # Train Loop
                              train_loader,
@@ -57,6 +59,7 @@ if __name__ == '__main__':
         test(model, device,  # Evaluation Loop
              test_loader, epoch,
              writer=writer)
+    run_time = tick - time.time()   # TODO: Log this in MD
 
     if train_logger is not None:  # TODO: Move to visuals
         step, train_loss, train_accuracy = train_logger  # Unpack values
