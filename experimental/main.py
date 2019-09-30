@@ -64,7 +64,7 @@ if __name__ == '__main__':
         test_logger = test(model, device,  # Evaluation Loop
                            test_loader, epoch,
                            writer=writer, logger=test_logger)
-    run_time = tick - time.time()
+    run_time = time.time() - tick
 
     if graphs:  # Plot log to graphs
         plot_logs(train_logger, training_dir)
@@ -75,4 +75,4 @@ if __name__ == '__main__':
         write_csv(test_logger, training_dir, test=True)
 
     write_to_readme(batch_size, learning_rate, seed,  # write to Readme.md
-                    epochs, time, training_dir)
+                    epochs, run_time, training_dir)
