@@ -1,25 +1,23 @@
 import os
 import time
 from os import path
-import pandas as pd 
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 
 from experimental.one import get_directories
-from experimental.two import write_to_Readme
 from experimental.three import train
-
+from experimental.two import write_to_readme
 from models.Vanilla_Acnn import VanillaACNN
 from utilities.data import load_data
 from utilities.train_helpers import test, default_config
 from utilities.visuals import plot_logs
 
 if __name__ == '__main__':
-    dataset = 'MNIST'
+    dataset_name = 'MNIST'
+    model_name = 'Vanilla_ACNN'
 
     # HyperParams and Others
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -36,15 +34,15 @@ if __name__ == '__main__':
 
     # Loading Data
     data_loc = r'E:\Datasets'
-    train_loader, test_loader = load_data(data_loc, batch_size, download=download, dataset=dataset)
+    train_loader, test_loader = load_data(data_loc, batch_size, download=download, dataset=dataset_name)
 
     # noinspection PyUnresolvedReferences
-    model = VanillaACNN(*default_config(dataset=dataset, model=model)).to(device=device)
+    model = VanillaACNN(*default_config(dataset=dataset_name, model=model_name)).to(device=device)
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 
     if not path.exists(logger_dir):
         os.mkdir(logger_dir)
-    training_dir, tensorboard_dir = get_directories(model, dataset, logger_dir)
+    training_dir, tensorboard_dir = get_directories(model, dataset_name, logger_dir)
 
     # Tensorboard writer
     if graphs:
@@ -63,9 +61,9 @@ if __name__ == '__main__':
         test(model, device,  # Evaluation Loop
              test_loader, epoch,
              writer=writer)
-    run_time = tick - time.time()   
+    run_time = tick - time.time()
 
-    if train_logger is not None:    # Save log plots
+    if train_logger is not None:  # Save log plots
         plot_logs(train_logger, training_dir)
-    
-    write_to_Readme(batch_size, learning_rate, seed, epochs, training_dir) # write to Readme.md
+
+    write_to_readme(batch_size, learning_rate, seed, epochs, training_dir)  # write to Readme.md

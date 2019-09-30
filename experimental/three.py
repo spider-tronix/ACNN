@@ -40,7 +40,7 @@ def train(model: nn.Module, device,
 
         optimizer.zero_grad()
         loss.backward()
-        optimizer.step_log()  # Backprop
+        optimizer.step()  # Backprop
         # Logging
         pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
         correct += pred.eq(target.view_as(pred)).sum().item()
@@ -72,8 +72,9 @@ def train(model: nn.Module, device,
 
     return step_log, loss_log, acc_log
 
-def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader, 
-        epoch, writer=None, logger=None):
+
+def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader,
+         epoch, writer=None, logger=None):
     """
     Performs evaluation on dataset
     :param model: Model Class
@@ -107,11 +108,11 @@ def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader,
     if writer is not None:  # Tensorboard Logging
         writer.add_scalar('Test Loss (/epoch)', test_loss, epoch)
         writer.add_scalar('Test Accuracy (/epoch)', test_acc, epoch)
-    
-    if logger is not None: # Manual Logging
-            step_log = np.append(step_log, epoch)
-            acc_log = np.append(acc_log, test_acc)
-            loss_log = np.append(loss_log, test_loss)
+
+    if logger is not None:  # Manual Logging
+        step_log = np.append(step_log, epoch)
+        acc_log = np.append(acc_log, test_acc)
+        loss_log = np.append(loss_log, test_loss)
 
     print('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset), test_acc))

@@ -1,7 +1,8 @@
 import os
 import pandas as pd
 
-def write_to_Readme(batch_size, lr, seed, epochs, train_dir):
+
+def write_to_readme(batch_size, lr, seed, epochs, train_dir):
     """
     Writes the hyperparams and log stats to Readme.md file
     batch_size: batch_size used
@@ -15,7 +16,7 @@ def write_to_Readme(batch_size, lr, seed, epochs, train_dir):
     idx_best_acc = logs['train_accuracy'].idxmax()
     _, step, loss, acc = logs.iloc[idx_best_acc]
 
-    Text = f"""
+    text = f"""
 ### Hyperparams
 - Torch.seed = {seed}
 - Epochs = {epochs}
@@ -28,5 +29,5 @@ def write_to_Readme(batch_size, lr, seed, epochs, train_dir):
 ![Graphs](train.png)
 """
     with open('README.md', 'w') as file:
-        file.write(Text)
+        file.write(text)
     print('Readme.md file ready')
