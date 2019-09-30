@@ -17,16 +17,16 @@ class ACNN(nn.Module):
         super(ACNN, self).__init__()
 
     # --------------------Features network------------------------#
-    
+
         self.net1 = nn.Sequential()
         
         num_layers1 = len(net1_channels) - 1
         for i in range(num_layers1):
             self.net1.add_module(f'net1_conv{i}', nn.Conv2d(net1_channels[i], 
-                                    net1_channels[i+1],
-                                    kernel_size=net1_kernels_size[i], 
-                                    stride=net1_strides[i]))    
-            self.net1.add(f'net1_relu{i}', nn.ReLU(inplace=True))
+                                                            net1_channels[i+1],
+                                                            net1_kernels_size[i], 
+                                                            stride=net1_strides[i]))    
+            self.net1.add(f'net1_relu{i}', nn.ReLU())
     
     # --------------------Filters network------------------------#        
 
@@ -35,10 +35,10 @@ class ACNN(nn.Module):
         num_layers2 = len(net2_channels) - 1
         for i in range(num_layers2):
             self.net2.add_module(f'net2_conv{i}', nn.Conv2d(net2_channels[i], 
-                                    net2_channels[i+1],
-                                    kernel_size=net2_kernels_size[i], 
-                                    stride=net2_strides[i]))    
-            self.net2.add(f'net2_relu{i}', nn.ReLU(inplace=True))
+                                                            net2_channels[i+1],
+                                                            net2_kernels_size[i], 
+                                                            stride=net2_strides[i]))    
+            self.net2.add(f'net2_relu{i}', nn.ReLU())
 
         
     # --------------------Classifier ---------------------------#
@@ -47,10 +47,9 @@ class ACNN(nn.Module):
 
         num_layers3 = len(fc_units) - 1
         for i in range(num_layers3):
-            self.fc.add_module(f'fc_linear{i}', 
-                                nn.Linear(fc_units[i]), fc_units[i+1])
-            self.fc.add_module(f'fc_relu{i}',
-                                nn.ReLU(inplace=True))            
+            self.fc.add_module(f'fc_linear{i}', nn.Linear(fc_units[i]), 
+                                                        fc_units[i+1])
+            self.fc.add_module(f'fc_relu{i}', nn.ReLU())            
         self.fc.add_module(f'fc_softmax', nn.LogSoftmax(dim=1))
         
 

@@ -42,18 +42,18 @@ class ACNN(nn.Module):
 
         self.net2 = nn.Sequential(
             nn.Conv2d(1, 16, 3, stride=1),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(16, 32, 5, stride=2),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(32, 64, 5, stride=2),
             nn.ReLU()
         )
 
         self.fc = nn.Sequential(
             nn.Linear(64, 32),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Linear(32, 16),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Linear(16, 10),
             nn.LogSoftmax(dim=1)
         )

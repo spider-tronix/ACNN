@@ -16,14 +16,14 @@ class BaseResNet(nn.Module):
         self.layer1 = nn.Sequential(
             nn.Conv2d(1, 16, 3, stride=1, bias=False),
             nn.BatchNorm2d(16),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         )
 
         self.layer2 = nn.Sequential(
             nn.Conv2d(16, 16, 3, stride=1, padding=1, bias=False),
             nn.BatchNorm2d(16),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(16, 16, 3, stride=1, padding=1, bias=False),
             nn.BatchNorm2d(16)
         )
@@ -36,7 +36,7 @@ class BaseResNet(nn.Module):
         self.layer3 = nn.Sequential(
             nn.Conv2d(16, 32, 3, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(32),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(32, 32, 3, stride=1, padding=1, bias=False),
             nn.BatchNorm2d(32)
         )
@@ -49,7 +49,7 @@ class BaseResNet(nn.Module):
         self.layer4 = nn.Sequential(
             nn.Conv2d(32, 64, 3, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(64),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)
         )
 
