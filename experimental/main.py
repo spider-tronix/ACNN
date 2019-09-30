@@ -74,4 +74,5 @@ if __name__ == '__main__':
         write_csv(train_logger, training_dir)
         write_csv(test_logger, training_dir, test=True)
     
-    write_to_Readme(batch_size, learning_rate, seed, epochs, training_dir) # write to Readme.md
+    write_to_Readme(batch_size, learning_rate, seed,   # write to Readme.md 
+                    epochs, time, training_dir) 
