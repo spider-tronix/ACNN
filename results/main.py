@@ -4,10 +4,11 @@ from torch.utils.tensorboard import SummaryWriter
 
 from models.Vanilla_Acnn import ACNN
 from utilities.data import load_data
-from utilities.train_helpers import train, test
+from utilities.train_helpers import train, test, default_config
 
 if __name__ == '__main__':
-    dataset = 'SVHN'
+    dataset = 'MNIST'
+    model = 'Vanilla_ACNN'
 
     # HyperParams and Others
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -25,16 +26,13 @@ if __name__ == '__main__':
     train_loader, test_loader = load_data(data_loc, batch_size, download=download, dataset=dataset)
     writer = None
 
-    input_channels = next(iter(train_loader))[0].shape[1]
-
     # Tensorboard writer
     if graphs:
         writer = SummaryWriter('/data/summary/mnist_resnet_1')
 
-    # noinspection PyUnresolvedReferences
-    model = ACNN(input_channels=input_channels).to(device=device)
+    model = ACNN(*default_config(dataset=dataset, model=model)).to(device=device)
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
 
     for epoch in range(1, epochs + 1):
         train(model, device, train_loader, optimizer, epoch, 100, writer)
-        test(model, device, test_loader)
+        test(model, device, test_loader, epoch, writer)
