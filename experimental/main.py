@@ -10,17 +10,20 @@ import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 
 from experimental.one import get_directories
+from experimental.two import write_to_Readme
 from experimental.three import train
+
 from models.Vanilla_Acnn import VanillaACNN
 from utilities.data import load_data
 from utilities.train_helpers import test, default_config
+from utilities.visuals import plot_logs
 
 if __name__ == '__main__':
     dataset = 'MNIST'
-    model = 'Vanilla_ACNN'
 
     # HyperParams and Others
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    seed = 0
     epochs = 3
     batch_size = 64
     learning_rate = 0.01
@@ -29,7 +32,7 @@ if __name__ == '__main__':
     logger_dir = 'testing2/'
 
     download = False
-    torch.manual_seed(0)
+    torch.manual_seed(seed)
 
     # Loading Data
     data_loc = r'E:\Datasets'
@@ -60,35 +63,8 @@ if __name__ == '__main__':
         test(model, device,  # Evaluation Loop
              test_loader, epoch,
              writer=writer)
-    run_time = tick - time.time()   # TODO: Log this in MD
+    run_time = tick - time.time()   
 
-    if train_logger is not None:  # TODO: Move to visuals
-        step, train_loss, train_accuracy = train_logger  # Unpack values
-
-        train_logs = np.hstack((step, train_loss, train_accuracy))
-        # noinspection PyTypeChecker
-        log_df = pd.DataFrame(train_logs)  
-        log_df.to_csv(training_dir + "/train.csv",
-                        columns=['step', 'train_loss', 'train_accuracy'])  # Write to CSV
-
-        plt.figure(figsize=(5, 10))  # Make a 1:2 figure
-
-        plt.subplot(211)
-        plt.plot(train_logger[0], train_logger[1])
-        plt.xlabel('Steps')
-        plt.ylabel('Loss')
-        plt.title('Train Loss')
-        # plt.text()    # TODO: Add name and hyperparams
-        plt.axis([0, step[-1], 0, 1.5])
-        plt.grid(True)
-
-        plt.subplot(212)
-        plt.plot(train_logger[0], train_logger[2])
-        plt.xlabel('Steps')
-        plt.ylabel('Acc')
-        plt.title('Train Acc')
-        # plt.text()    # TODO: Add name and hyperparams
-        plt.axis([0, step[-1], 85, 100])
-        plt.grid(True)
-
-        plt.savefig(training_dir + "/train")  # Write to PNG
+    if train_logger is not None:    # Save log plots
+        plot_logs(train_logger, training_dir)
+        

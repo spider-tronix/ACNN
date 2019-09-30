@@ -65,3 +65,35 @@ def save(features, filters, data, dir, features_resize, filters_resize):
             f_i = Image.fromarray(np.uint8(filters[i, j].cpu().numpy() * 255))
             f_i = f_i.resize(filters_resize)
             f_i.save(f'{filters_dir}/filter_{j}.jpg')
+
+
+def plot_logs(train_logger, training_dir):
+    step, train_loss, train_accuracy = train_logger  # Unpack values
+
+        train_logs = np.hstack((step, train_loss, train_accuracy))
+        # noinspection PyTypeChecker
+        log_df = pd.DataFrame(train_logs)  
+        log_df.to_csv(training_dir + "/train.csv",
+                        columns=['step', 'train_loss', 'train_accuracy'])  # Write to CSV
+
+        plt.figure(figsize=(5, 10))  # Make a 1:2 figure
+
+        plt.subplot(211)
+        plt.plot(train_logger[0], train_logger[1])
+        plt.xlabel('Steps')
+        plt.ylabel('Loss')
+        plt.title('Train Loss')
+        # plt.text()    # TODO: Add name and hyperparams
+        plt.axis([0, step[-1], 0, 1.5])
+        plt.grid(True)
+
+        plt.subplot(212)
+        plt.plot(train_logger[0], train_logger[2])
+        plt.xlabel('Steps')
+        plt.ylabel('Acc')
+        plt.title('Train Acc')
+        # plt.text()    # TODO: Add name and hyperparams
+        plt.axis([0, step[-1], 85, 100])
+        plt.grid(True)
+
+        plt.savefig(training_dir + "/train")  # Write to PNG
