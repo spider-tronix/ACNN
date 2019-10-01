@@ -30,7 +30,7 @@ if __name__ == '__main__':
     csv = True
     logger_dir = os.path.join(dirname(dirname(abspath(__file__))), 'results')
 
-    download = False
+    download = True     # Doesn't re-download if existent. Def. to True is better
     torch.manual_seed(seed)
 
     # Loading Data
