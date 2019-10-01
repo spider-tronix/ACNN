@@ -22,7 +22,7 @@ if __name__ == '__main__':
     # HyperParams and Others
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     seed = 0
-    epochs = 20
+    epochs = 5
     batch_size = 64
     learning_rate = 0.01
 

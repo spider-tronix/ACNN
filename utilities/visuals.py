@@ -116,9 +116,14 @@ def write_to_readme(batch_size, lr, seed, epochs, run_time, train_dir):
     train_dir: Directory contianing train.csv and train.png
     returns: Writes a Readme.md file in train_dir
     """
-    logs = pd.read_csv(os.path.join(train_dir, 'train.csv'))
-    idx_best_acc = logs['accuracy'].idxmax()
-    _, step, loss, acc = logs.iloc[idx_best_acc]
+    train_logs = pd.read_csv(os.path.join(train_dir, 'train.csv'))
+    test_logs = pd.read_csv(os.path.join(train_dir, 'test.csv'))
+
+    idx_best_train_acc = train_logs['accuracy'].idxmax()
+    _, train_step, train_loss, train_acc = train_logs.iloc[idx_best_train_acc]
+
+    idx_best_test_acc = test_logs['accuracy'].idxmax()
+    _, test_step, test_loss, test_acc = test_logs.iloc[idx_best_test_acc]
 
     text = f"""
 ### Hyperparams
@@ -126,13 +131,19 @@ def write_to_readme(batch_size, lr, seed, epochs, run_time, train_dir):
 - Epochs = {epochs}
 - Batch_size = {batch_size}
 - Learning Rate = {lr}
-- Best Accuracy:
-    - Step = {step}
-    - Train Accuracy = {acc:.4f}
-    - Train loss = {loss:.6f}
-    - Training time = {run_time:.2f}s ≈ {int(run_time / 60)} min
+- Best Train Accuracy:
+    - Step = {train_step}
+    - Train Accuracy = {train_acc:.4f}
+    - Train loss = {train_loss:.6f}
+- Best Test Accuracy:
+    - Step = {test_step}
+    - Train Accuracy = {test_acc:.4f}
+    - Train loss = {test_loss:.6f}
+    
+- Training time = {run_time:.2f}s ≈ {int(run_time / 60)} min
 
 ![Graphs](train.png)
+![Graphs](test.png)
 """
     with open(os.path.join(train_dir, 'README.md'),
               'w', encoding='utf-8') as file:
