@@ -45,8 +45,10 @@ class VanillaACNN(nn.Module):
         for i in range(num_layers3):
             self.fc.add_module(f'fc_linear{i}', nn.Linear(fc_units[i],
                                                           fc_units[i + 1]))
-            self.fc.add_module(f'fc_relu{i}', nn.ReLU())
-        self.fc.add_module(f'fc_softmax', nn.LogSoftmax(dim=1))
+            if i < num_layers3 - 1:
+                self.fc.add_module(f'fc_relu{i}', nn.ReLU())
+            else:
+                self.fc.add_module(f'fc_softmax', nn.LogSoftmax(dim=1))
 
     # noinspection PyPep8Naming
     def forward(self, X):
