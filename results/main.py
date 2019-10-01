@@ -1,12 +1,15 @@
 import os
+import sys
 import time
 from os import path
+from os.path import dirname, abspath
 
 import numpy as np
 import torch
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 
+sys.path.append(dirname(dirname(abspath(__file__))))
 from models.Vanilla_Acnn import VanillaACNN
 from utilities.data import load_data
 from utilities.train_helpers import default_config, get_directories, train, test
@@ -25,7 +28,7 @@ if __name__ == '__main__':
 
     graphs = True
     csv = True
-    logger_dir = '.'
+    logger_dir = os.path.join(dirname(dirname(abspath(__file__))), 'results')
 
     download = False
     torch.manual_seed(seed)
