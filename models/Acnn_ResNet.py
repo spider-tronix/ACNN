@@ -17,12 +17,12 @@ class ACNNResNet(BaseResNet):
         identity1 = out1
         out2 = self.layer2(out1)
         out2 += identity1  # adding residual
-        F.relu(out2)
+        F.relu(out2, inplace=True)
 
         identity2 = self.downsample_2_3(out2)
         out3 = self.layer3(out2)
         out3 += identity2
-        F.relu(out3)
+        F.relu(out3, inplace=True)
 
         identity3 = self.downsample_3_4(out3)
         out4 = self.layer4(out3)
