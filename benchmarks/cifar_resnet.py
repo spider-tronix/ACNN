@@ -44,7 +44,7 @@ class CifarResNet(nn.Module):
         
         for i in range(n):
             if i == 0:
-                self.model.add_module(f'conv{l}', nn.Conv2d(16, 32, 1, stride=2, padding=1, bias=False)) # k_size = 1, stride = 2 for downsampling
+                self.model.add_module(f'conv{l}', nn.Conv2d(16, 32, 1, stride=2, bias=False)) # k_size = 1, stride = 2, pad = 0 for downsampling
             else:
                 self.model.add_module(f'conv{l}', nn.Conv2d(32, 32, 3, stride=1, padding=1, bias=False)) # k_size = 3, stride = 1
             self.model.add_module(f'bn{l}', nn.BatchNorm2d(32))
@@ -58,7 +58,7 @@ class CifarResNet(nn.Module):
 
         for i in range(n):
             if i == 0:
-                self.model.add_module(f'conv{l}', nn.Conv2d(32, 64, 1, stride=2, padding=1, bias=False)) # k_size = 1, stride = 2 for downsampling
+                self.model.add_module(f'conv{l}', nn.Conv2d(32, 64, 1, stride=2, bias=False)) # k_size = 1, stride = 2, pad = 0 for downsampling
             else:
                 self.model.add_module(f'conv{l}', nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False)) # k_size = 3, stride = 1
             self.model.add_module(f'bn{l}', nn.BatchNorm2d(64))
@@ -103,8 +103,8 @@ class CifarResNet(nn.Module):
                 k += 1
             
             # Uncomment to verify    
-            #if i == 2*self.n + 2 or i == 4*self.n + 2: print('-'*10) # Basically print "-" after 2n+1, 4n + 1 (2n + 2n + 1)
-            #print(out.shape, '\t channels', out.shape[1], '\t layer', i) 
+            if i == 2*self.n + 2 or i == 4*self.n + 2: print('-'*10) # Basically print "-" after 2n+1, 4n + 1 (2n + 2n + 1)
+            print(out.shape, '\t channels', out.shape[1], '\t layer', i) 
 
         out = self.avgpool(out)
         out = torch.flatten(out, 1)
