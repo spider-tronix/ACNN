@@ -22,44 +22,44 @@ class CifarResNet(nn.Module):
 
         l = 1  # keeps count of layers added
         self.model = nn.Sequential()
-        self.model.append(f'conv{l}', nn.Conv2d(1, 16, 3, stride=1, padding=1, bias=False))
-        self.model.append(f'bn{l}', nn.BatchNorm2d(16))
-        self.model.append(f'relu{l}', nn.ReLU())
+        self.model.add_module(f'conv{l}', nn.Conv2d(1, 16, 3, stride=1, padding=1, bias=False))
+        self.model.add_module(f'bn{l}', nn.BatchNorm2d(16))
+        self.model.add_module(f'relu{l}', nn.ReLU())
         l += 1
 
         for _ in range(2 * n):
-            self.model.append(f'conv{l}', nn.Conv2d(16, 16, 3, stride=1, padding=1, bias=False))
-            self.model.append(f'bn{l}', nn.BatchNorm2d(16))
-            self.model.append(f'relu{l}', nn.ReLU())
+            self.model.add_module(f'conv{l}', nn.Conv2d(16, 16, 3, stride=1, padding=1, bias=False))
+            self.model.add_module(f'bn{l}', nn.BatchNorm2d(16))
+            self.model.add_module(f'relu{l}', nn.ReLU())
             l += 1
-            self.model.append(f'conv{l}', nn.Conv2d(16, 16, 3, stride=1, padding=1, bias=False))
-            self.model.append(f'bn{l}', nn.BatchNorm2d(16))
+            self.model.add_module(f'conv{l}', nn.Conv2d(16, 16, 3, stride=1, padding=1, bias=False))
+            self.model.add_module(f'bn{l}', nn.BatchNorm2d(16))
             l += 1
 
-        self.model.append(f'conv{l}', nn.Conv2d(16, 32, 1, stride=2, bias=False))
-        self.modle.append(f'bn{l}', nn.BatchNorm2d(32))
+        self.model.add_module(f'conv{l}', nn.Conv2d(16, 32, 1, stride=2, bias=False))
+        self.model.add_module(f'bn{l}', nn.BatchNorm2d(32))
         l += 1
 
         for _ in range(2 * n - 1):
-            self.model.append(f'conv{l}', nn.Conv2d(16, 32, 3, stride=2, padding=1, bias=False))
-            self.model.append(f'bn{l}', nn.BatchNorm2d(32))
-            self.model.append(f'relu{l}', nn.ReLU())
+            self.model.add_module(f'conv{l}', nn.Conv2d(16, 32, 3, stride=2, padding=1, bias=False))
+            self.model.add_module(f'bn{l}', nn.BatchNorm2d(32))
+            self.model.add_module(f'relu{l}', nn.ReLU())
             l += 1
-            self.model.append(f'conv{l}', nn.Conv2d(32, 32, 3, stride=1, padding=1, bias=False))
-            self.model.append(f'bn{l}', nn.BatchNorm2d(32))
+            self.model.add_module(f'conv{l}', nn.Conv2d(32, 32, 3, stride=1, padding=1, bias=False))
+            self.model.add_module(f'bn{l}', nn.BatchNorm2d(32))
             l += 1
 
-        self.model.append(f'conv{l}', nn.Conv2d(32, 64, 1, stride=2, bias=False))
-        self.modle.append(f'bn{l}', nn.BatchNorm2d(64))
+        self.model.add_module(f'conv{l}', nn.Conv2d(32, 64, 1, stride=2, bias=False))
+        self.model.add_module(f'bn{l}', nn.BatchNorm2d(64))
         l += 1
 
         for _ in range(2 * n - 1):
-            self.model.append(f'conv{l}', nn.Conv2d(32, 64, 3, stride=2, padding=1, bias=False))
-            self.model.append(f'bn{l}', nn.BatchNorm2d(64))
-            self.model.append(f'relu{l}', nn.ReLU())
+            self.model.add_module(f'conv{l}', nn.Conv2d(32, 64, 3, stride=2, padding=1, bias=False))
+            self.model.add_module(f'bn{l}', nn.BatchNorm2d(64))
+            self.model.add_module(f'relu{l}', nn.ReLU())
             l += 1
-            self.model.append(f'conv{l}', nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False))
-            self.model.append(f'bn{l}', nn.BatchNorm2d(64))
+            self.model.add_module(f'conv{l}', nn.Conv2d(64, 64, 3, stride=1, padding=1, bias=False))
+            self.model.add_module(f'bn{l}', nn.BatchNorm2d(64))
             l += 1
 
         self.avgpool = nn.AdaptiveAvgPool2d(output_size=(1, 1))
@@ -98,3 +98,7 @@ class CifarResNet(nn.Module):
         out = self.fc(out)
 
         return out
+
+
+model = CifarResNet(5)
+print(model)
