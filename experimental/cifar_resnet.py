@@ -75,7 +75,7 @@ class CifarResNet(nn.Module):
         """
 
         layers = { name:module for name, module in self.model.named_modules()}
-        id_dict = { f'identity{i}':None for i in range(6*n)}
+        id_dict = { f'identity{i}':None for i in range(1, 6*n+1)}
 
         out = layers['conv1'](X)
         out = layers['bn1'](out)
@@ -92,7 +92,7 @@ class CifarResNet(nn.Module):
                 out += id_dict[f'identity{i-1}']
                 out = F.relu(out)
 
-        out = self.avgpool(out4)
+        out = self.avgpool(out)
         out = torch.flatten(out, 1)
         out = self.fc(out)
 
