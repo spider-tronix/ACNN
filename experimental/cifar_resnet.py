@@ -18,7 +18,8 @@ class CifarResNet(nn.Module):
         if n not in [3, 5, 7, 9, 11]:
             raise NotImplementedError('Resnet 20/32/44/56/110 only implemented. \
                                         Contact Sharan or Sachin, if u need any other model')
-        
+        self.n = n
+
         l = 1  # keeps count of layers added
         self.model = nn.Sequential()
         self.model.append(f'conv{l}', nn.Conv2d(1, 16, 3, stride=1, padding=1, bias=False)) 
@@ -75,13 +76,13 @@ class CifarResNet(nn.Module):
         """
 
         layers = { name:module for name, module in self.model.named_modules()}
-        id_dict = { f'identity{i}':None for i in range(1, 6*n+1)}
+        id_dict = { f'identity{i}':None for i in range(1, 6*self.n+1)}
 
         out = layers['conv1'](X)
         out = layers['bn1'](out)
         out = layers['relu1'](out)
 
-        for i in range(2, 6*n+2):
+        for i in range(2, 6*self.n+2):
             id_dict[f'identity{i-1}'] = out
             out = layers[f'conv{i}'](out)
             out = layers[f'bn{i}'](out)
