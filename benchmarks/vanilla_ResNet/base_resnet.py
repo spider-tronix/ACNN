@@ -6,12 +6,11 @@ import torch.nn.functional as F
 
 class BaseResNet(nn.Module):
 
-    def __init__(self, device='cuda:0'):
+    def __init__(self):
         """
         Init all variables for class
         """
         super(BaseResNet, self).__init__()
-        self.device = device
 
         self.layer1 = nn.Sequential(
             nn.Conv2d(1, 16, 3, stride=1, bias=False),
