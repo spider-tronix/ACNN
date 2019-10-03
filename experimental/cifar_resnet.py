@@ -21,8 +21,9 @@ class CifarResNet(nn.Module):
         self.n = n
 
         l = 1  # keeps count of layers added
+
         self.model = nn.Sequential()
-        self.model.add_module(f'conv{l}', nn.Conv2d(1, 16, 3, stride=1, padding=1, bias=False))
+        self.model.add_module(f'conv{l}', nn.Conv2d(3, 16, 3, stride=1, padding=1, bias=False))
         self.model.add_module(f'bn{l}', nn.BatchNorm2d(16))
         self.model.add_module(f'relu{l}', nn.ReLU())
         l += 1
@@ -35,9 +36,8 @@ class CifarResNet(nn.Module):
             self.model.add_module(f'conv{l}', nn.Conv2d(16, 16, 3, stride=1, padding=1, bias=False))
             self.model.add_module(f'bn{l}', nn.BatchNorm2d(16))
             l += 1
-
-        self.model.add_module(f'conv{l}', nn.Conv2d(16, 32, 1, stride=2, bias=False))
-        self.model.add_module(f'bn{l}', nn.BatchNorm2d(32))
+        self.model.add_module(f'downsample_conv{l}', nn.Conv2d(16, 32, 1, stride=2, bias=False))
+        self.model.add_module(f'downsample_bn{l}', nn.BatchNorm2d(32))
         l += 1
 
         for _ in range(2 * n - 1):
@@ -48,9 +48,8 @@ class CifarResNet(nn.Module):
             self.model.add_module(f'conv{l}', nn.Conv2d(32, 32, 3, stride=1, padding=1, bias=False))
             self.model.add_module(f'bn{l}', nn.BatchNorm2d(32))
             l += 1
-
-        self.model.add_module(f'conv{l}', nn.Conv2d(32, 64, 1, stride=2, bias=False))
-        self.model.add_module(f'bn{l}', nn.BatchNorm2d(64))
+        self.model.add_module(f'downsample_conv{l}', nn.Conv2d(32, 64, 1, stride=2, bias=False))
+        self.model.add_module(f'downsample_bn{l}', nn.BatchNorm2d(64))
         l += 1
 
         for _ in range(2 * n - 1):
@@ -86,11 +85,25 @@ class CifarResNet(nn.Module):
             id_dict[f'identity{i - 1}'] = out
             out = layers[f'conv{i}'](out)
             out = layers[f'bn{i}'](out)
-            out = layers[f'relu{i}'](out)
+
+            try:
+                out = layers[f'relu{2 * i}'](out)
+            except:
+                try:
+                    out = layers[f'relu{2 * i + 1}'](out)
+                except:
+                    try:
+                        out = layers[f'relu{2 * i + 2}'](out)
+                    except:
+                        raise IndexError
+
             if i < 6 * self.n + 1:
                 out = layers[f'conv{i + 1}'](out)
                 out = layers[f'bn{i + 1}'](out)
-                out += id_dict[f'identity{i - 1}']
+                try:
+                    out += id_dict[f'identity{i - 1}']
+                except:
+                    id_dict[f'identity{i - 1}'] = layers[f'downsample_conv{i}'](id_dict[f'identity{i - 1}'])
                 out = F.relu(out)
 
         out = self.avgpool(out)
@@ -101,4 +114,4 @@ class CifarResNet(nn.Module):
 
 
 model = CifarResNet(5)
-print(model)
+print(model(torch.rand((1, 3, 32, 32))))
