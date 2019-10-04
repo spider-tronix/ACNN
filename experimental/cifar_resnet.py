@@ -45,7 +45,7 @@ class CifarResNet(nn.Module):
 
     def grouped_resnet_blocks(self, in_c, out_c, sub=0):
 
-        for i in range(n):
+        for i in range(self.n):
             if i == 0 and in_c != out_c:    # condition for downsample and subsample
                 self.model.add_module(f'conv{self.l}', nn.Conv2d(in_c, out_c, 1, stride=2, bias=False)) # downsampling
             else:
@@ -89,7 +89,7 @@ class CifarResNet(nn.Module):
             if self.relu_list[i] == 1:  # normal ReLU 
                 out = layers[f'relu{i}'](out)
             else:   # Skip Connection
-                if s%n == 0 and s>0:
+                if s%self.n == 0 and s>0:
                     sub_i = int(s/self.n) # subSample number
                     id_dict[f'id{s}'] = layers[f'subSample{sub_i}_conv'](id_dict[f'id{s}'])
                     id_dict[f'id{s}'] = layers[f'subSample{sub_i}_bn'](id_dict[f'id{s}'])
