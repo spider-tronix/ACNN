@@ -135,6 +135,7 @@ class CifarResNet(nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
             elif isinstance(m, BasicBlock):
+                m: BasicBlock
                 nn.init.constant_(m.bn2.weight, 0)
 
     # noinspection PyPep8Naming
