@@ -1,32 +1,34 @@
 import os
+import sys
+import time
 from os.path import abspath, dirname
 
-import time
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-
-import torchvision
-import torchvision.models as models
 import torchvision.transforms as transforms
-from torchvision.datasets import CIFAR10
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from torchvision.datasets import CIFAR10
 
-from utilities.train_helpers import get_directories, train
-from utilities.cifar_utils.utils import std_cifar10, mean_cifar10
+sys.path.append(dirname(dirname(abspath(__file__))))
+
+from benchmarks.models.cifar_resnet_v2 import BenchmarkResNet
+from utilities.train_helpers import get_directories, train, test
+from utilities.cifar_utils import std_cifar10, mean_cifar10
 from utilities.visuals import plot_logs, write_csv, write_to_readme
 
 args = {
-    'log_dir':'./results',
-    'seed':0,
+    'log_dir': './results',
+    'n': 18,
+    'seed': 0,
     'dataset': 'CIFAR10',
     'epochs': 1,
     'batch_size': 128,
     'lr': 0.1,
-    'graphs':True,
-    'csv':True,
+    'graphs': True,
+    'csv': True,
     'lr_schedule': 0,
     'momentum': 0.9,
     'nesterov': False,
@@ -37,8 +39,10 @@ args = {
 # noinspection PyShadowingNames
 def adjust_learning_rate(optimizer, epoch):
     if args['lr_schedule'] == 0:
-        lr = args['lr'] * ((0.2 ** int(epoch >= 60)) * (0.2 ** int(epoch >= 120))
-                           * (0.2 ** int(epoch >= 160) * (0.2 ** int(epoch >= 220))))
+        lr = args['lr'] * ((0.2 ** int(epoch >= 60)) *
+                           (0.2 ** int(epoch >= 120)) *
+                           (0.2 ** int(epoch >= 160) *
+                            (0.2 ** int(epoch >= 220))))
     elif args['lr_schedule'] == 1:
         lr = args['lr'] * ((0.1 ** int(epoch >= 150))
                            * (0.1 ** int(epoch >= 225)))
@@ -54,10 +58,10 @@ def adjust_learning_rate(optimizer, epoch):
 
 if __name__ == '__main__':
     if args['dataset'] == 'CIFAR10':
-        
+
         print('To train and eval on cifar10 dataset......')
         num_classes = 10
-        data_loc = './data'
+        data_loc = r'E:\Datasets'
 
         transform_train = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
@@ -69,76 +73,73 @@ if __name__ == '__main__':
             transforms.ToTensor(),
             transforms.Normalize(mean_cifar10(data_loc), std_cifar10(data_loc)),
         ])
-        
-        #------------------Load Dataset---------------------------------#
 
-        train_set = CIFAR10(root='./data', train=True, download=True, transform=transform_train)
+        # ------------------Load Dataset---------------------------------#
+
+        train_set = CIFAR10(root=data_loc, train=True, download=True, transform=transform_train)
         train_loader = DataLoader(train_set, batch_size=args['batch_size'], shuffle=True, num_workers=4)
 
-        test_set = CIFAR10(root='./data', train=False, download=True, transform=transform_test)
+        test_set = CIFAR10(root=data_loc, train=False, download=True, transform=transform_test)
         test_loader = DataLoader(test_set, batch_size=args['batch_size'], shuffle=False, num_workers=4)
     else:
         raise NotImplementedError('Only Cifar10 dataset')
 
-    
     torch.manual_seed(args['seed'])
 
     # logger_dir = os.path.join(dirname(dirname(abspath(__file__))), args_dir['log_dir'])
     logger_dir = args['log_dir']
     if not os.path.exists(logger_dir):
         os.mkdir(logger_dir)
-    
-    
-    #----------------------Initialise model----------------------#
 
-    model = CifarResNet(n=5).cuda()
-    optimizer = optim.SGD(model.parameters(), lr=args['lr'], 
-                            momentum=args['momentum'], 
-                            nesterov=args['nesterov'], 
-                            weight_decay=args['weight_decay'])
+    # ----------------------Initialise model----------------------#
 
-    #---------------------Get Logging Directories----------------#
+    model = BenchmarkResNet(n=args['n']).cuda()
+    optimizer = optim.SGD(model.parameters(), lr=args['lr'],
+                          momentum=args['momentum'],
+                          nesterov=args['nesterov'],
+                          weight_decay=args['weight_decay'])
+
+    # ---------------------Get Logging Directories----------------#
 
     training_dir, tensorboard_dir, save_models_dir = get_directories(model, args['dataset'], logger_dir)
 
-    #-----------------------Hyperparams-----------------------------#
+    # -----------------------Hyperparams-----------------------------#
 
     device = "cuda:0"
     best_acc = 0
-    start_epoch = 0
+    start_epoch = 1
     criterion = nn.CrossEntropyLoss()
 
-    #--------------------Tensorboard writer---------------------------#
+    # --------------------Tensorboard writer---------------------------#
 
     if args['graphs'] or args['csv']:
-        writer = SummaryWriter(tensorboard_dir)  
-        train_logger = (np.array([]), np.array([]), np.array([])) 
+        writer = SummaryWriter(tensorboard_dir)
+        train_logger = (np.array([]), np.array([]), np.array([]))
         test_logger = (np.array([]), np.array([]), np.array([]))
-    else:  
+    else:
         writer, train_logger, test_logger = None, None, None
 
-    #---------------------Start Training-------------------------------#
-    
+    # ---------------------Start Training-------------------------------#
+
     tick = time.time()
-    for epoch in range(start_epoch, args['epochs']):
+    for epoch in range(start_epoch, args['epochs'] + 1):
         train_logger = train(model, device,  # Train Loop
                              train_loader,
-                             optimizer, epoch,
+                             optimizer, epoch=epoch, criterion=criterion,
                              log_interval=100, writer=writer, logger=train_logger)
 
         test_logger, acc = test(model, device,  # Evaluation Loop
-                                test_loader, epoch,
+                                test_loader, epoch, criterion=criterion,
                                 writer=writer, logger=test_logger)
-        print('len', len(test_logger))
 
-        #-------------Save best models------------------#
+        # -------------Save best models------------------#
         if acc > best_acc:
             best_acc = acc
             torch.save(model.state_dict(), os.path.join(save_models_dir, 'best_epoch' + '.pth.tar'))
             torch.save(model.state_dict(), os.path.join(save_models_dir, 'epoch_%s' % epoch + '.pth.tar'))
     run_time = time.time() - tick
-    
-    #---------------------Save Logs--------------------------------------#
+
+    # ---------------------Save Logs--------------------------------------#
 
     if args['graphs']:  # Plot log to graphs
         plot_logs(train_logger, training_dir)
@@ -148,5 +149,5 @@ if __name__ == '__main__':
         write_csv(train_logger, training_dir)
         write_csv(test_logger, training_dir, test=True)
 
-    write_to_readme(args['batch_size'], args['lr'], 
-                        args['seed'], args['epochs'], run_time, training_dir)
+    write_to_readme(args['batch_size'], args['lr'],
+                    args['seed'], args['epochs'], run_time, training_dir)

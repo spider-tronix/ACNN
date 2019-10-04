@@ -12,9 +12,11 @@ from torch.utils.data import DataLoader
 def train(model: nn.Module, device,
           train_loader: torch.utils.data.DataLoader,
           optimizer: torch.optim.SGD,
+          criterion,
           epoch, log_interval, writer=None, logger=None):
     """
     Performs one epoch of training on model
+    :param criterion: Loss Function
     :param logger:
     :param model: Model class
     :param device: Device to train on. Use 'cuda:0' for GPU acceleration
@@ -39,7 +41,7 @@ def train(model: nn.Module, device,
         data, target = data.to(device), target.to(device)
 
         output = model(data)  # Forward Prop
-        loss = F.nll_loss(output, target)
+        loss = criterion(output, target)
 
         optimizer.zero_grad()
         loss.backward()
@@ -77,7 +79,7 @@ def train(model: nn.Module, device,
 
 
 def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader,
-         epoch, writer=None, logger=None):
+         epoch, criterion, writer=None, logger=None, ):
     """
     Performs evaluation on dataset
     :param model: Model Class
@@ -101,7 +103,7 @@ def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader,
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
+            test_loss += F.cross_entropy(output, target, reduction='sum').item()  # sum up batch loss
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
@@ -214,5 +216,5 @@ def get_directories(model, dataset, parent_dir):
 
     if not path.exists(save_models_dir):
         os.mkdir(save_models_dir)
-    
+
     return training_dir, tensorboard_dir, save_models_dir
