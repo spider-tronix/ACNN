@@ -25,7 +25,7 @@ class BasicBlock(nn.Module):
         self.single_block = nn.Sequential(
             nn.Conv2d(in_filters, out_filters, 3, padding=1, bias=False, stride=stride),
             nn.BatchNorm2d(out_filters),
-            nn.ReLU(inplace=True),
+            nn.ReLU(),
             nn.Conv2d(out_filters, out_filters, 3, padding=1, bias=False),
             nn.BatchNorm2d(out_filters)
         )
@@ -51,7 +51,7 @@ class CifarResNet(nn.Module):
     filters are {16; 32; 64} respectively. The sub-sampling is performed
     by convolutions with a stride of 2.
 
-    There are totally 6n+1 stacked weighted layers.
+    There are totally 6n+1 stacked weighted layers and 3n residual connections.
     """
 
     def __init__(self, layers, in_channels=3):
@@ -69,7 +69,7 @@ class CifarResNet(nn.Module):
         self.layer1 = nn.Sequential(
             nn.Conv2d(in_channels, 16, 3, stride=1, padding=1, bias=False),
             nn.BatchNorm2d(16),
-            nn.ReLU(inplace=True)
+            nn.ReLU()
         )
 
         self.filters = 16  # Update current no of filters. Tracks the need for down-sampling
