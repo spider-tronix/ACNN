@@ -17,7 +17,7 @@ class CifarClippedResNet(CifarResNet):
     """
 
     def __init__(self, n):
-        super(CifarAcnnResNet, self).__init__(n)
+        super(CifarClippedResNet, self).__init__(n)
 
     def forward(self, X):
 

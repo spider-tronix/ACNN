@@ -3,7 +3,6 @@ from os.path import dirname, abspath
 
 import torch.nn.functional as F
 from torch import nn
-import torch
 
 sys.path.append(dirname(dirname(abspath(__file__))))
 from utilities.train_helpers import grouped_conv
@@ -27,13 +26,14 @@ class BasicBlock(nn.Module):
             nn.BatchNorm2d(out_filters),
             nn.ReLU(),
             nn.Conv2d(out_filters, out_filters, 3, padding=1, bias=False),
-            nn.BatchNorm2d(out_filters)
         )
+        self.bn2 = nn.BatchNorm2d(out_filters)
         self.downsample = downsample
 
     def forward(self, x):
         identity = x  # Residual
         out = self.single_block(x)
+        out = self.bn2(out)
 
         if self.downsample is not None:
             identity = self.downsample(x)
@@ -93,6 +93,8 @@ class CifarResNet(nn.Module):
         # No of Weighted Layers : 2n
         self.layer4 = self._make_layer(64, layers[2])
 
+        self._weights_initialise()  # Zero initialize the weights for better performance
+
     def _make_layer(self, filters, no_layers):
         """
         Generates ResNet Sub-Block
@@ -116,6 +118,25 @@ class CifarResNet(nn.Module):
             layers.append(BasicBlock(self.filters, filters))
 
         return nn.Sequential(*layers)
+
+    def _weights_initialise(self):
+        """
+        Zero-initialize the last BN in each residual branch, so that
+        the residual branch starts with zeros, and each residual block
+        behaves like an identity.
+
+        This improves the model by 0.2~0.3% according to https://arxiv.org/abs/1706.02677
+        :return: None
+        """
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+            elif isinstance(m, BasicBlock):
+                m: BasicBlock
+                nn.init.constant_(m.bn2.weight, 0)
 
     # noinspection PyPep8Naming
     def forward(self, X):
