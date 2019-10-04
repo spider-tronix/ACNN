@@ -15,7 +15,7 @@ from torch.utils.tensorboard import SummaryWriter
 sys.path.append(dirname(dirname(abspath(__file__))))
 
 from experimental.utils import std_cifar10, mean_cifar10, std_cifar100, mean_cifar100
-from experimental.cleaner_resnet import ACNN
+from benchmarks.models.cifar_resnet_v2 import ACNN
 from utilities.train_helpers import get_directories, train, test
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "2"

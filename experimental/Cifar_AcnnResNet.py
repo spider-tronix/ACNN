@@ -21,24 +21,33 @@ class CifarClippedResNet(CifarResNet):
 
     def forward(self, X):
 
+    
         layers = {name: module for name, module in self.model.named_modules()}
-        id_dict = {f'identity{i}': None for i in range(3 * self.n)}  # network will have 3n skip connections
+        id_dict = {f'id{i}': None for i in range(3 * self.n)}  
 
         out = layers['conv1'](X)
         out = layers['bn1'](out)
         out = layers['relu1'](out)
 
-        k = 0
+        s = 0  # skip connections
         for i in range(2, 6 * self.n + 2):
-            id_dict[f'identity{k}'] = out  # residual
+            if id_dict[f'id{s}'] is None:
+                id_dict[f'id{s}'] = out  # residual
             out = layers[f'conv{i}'](out)
             out = layers[f'bn{i}'](out)
-            if self.relu_list[i] == 1:
+
+            if self.relu_list[i] == 1:  # normal ReLU 
                 out = layers[f'relu{i}'](out)
-            if self.relu_list[i] == 0:
-                out += id_dict[f'identity{k}']  # residual added
+            else:                       # Skip Connection
+                if s % self.n == 0 and s > 0:
+                    sub_i = int(s / self.n)  # subSample number
+                    id_dict[f'id{s}'] = layers[f'subSample{sub_i}_conv'](id_dict[f'id{s}'])
+                    id_dict[f'id{s}'] = layers[f'subSample{sub_i}_bn'](id_dict[f'id{s}'])
+                    id_dict[f'id{s}'] = layers[f'subSample{sub_i}_relu'](id_dict[f'id{s}'])
+
+                out += id_dict[f'id{s}']  # residual added
                 out = F.relu(out)
-                k += 1
+                s += 1
 
         return out
 
@@ -46,17 +55,17 @@ class CifarClippedResNet(CifarResNet):
 # noinspection PyPep8Naming
 class CifarAcnnResNet(nn.Module):
     """
-        ACNN variant of ResNet.
+        ACNN variant of ResNet. Does drastic reduction in filters network.
         Architecture optimized for training on CIFAR-10 dataset.
     """
 
-    def __init__(self, n1):
+    def __init__(self, n1, n2):
         super(CifarAcnnResNet, self).__init__()
 
         self.features_net = CifarClippedResNet(n1)
 
         # gives 64 (3x3) filters
-        self.net2 = nn.Sequential(
+        self.filters_net = nn.Sequential(
             nn.Conv2d(3, 16, 3, stride=1),
             nn.ReLU(),
             nn.Conv2d(16, 32, 5, stride=2),
