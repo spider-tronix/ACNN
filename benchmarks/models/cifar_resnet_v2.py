@@ -155,30 +155,6 @@ def resnet(n=5, in_channels=3):
     return CifarResNet(layers=layers, in_channels=in_channels)
 
 
-class ACNN(nn.Module):
-
-    def __init__(self, n1=9, n2=3, in_channels=3, no_classes=10):
-        super(ACNN, self).__init__()
-        self.features_net = resnet(n=n1, in_channels=in_channels)
-        self.filters_net = resnet(n=n2, in_channels=in_channels)
-
-        self.fc = nn.Sequential(
-            nn.Linear(64, 32),
-            nn.ReLU(inplace=True),
-            nn.Linear(32, no_classes),
-            nn.LogSoftmax(dim=1)
-        )
-
-    # noinspection PyPep8Naming
-    def forward(self, X):
-        out1 = self.features_net(X)
-        out2 = self.features_net(X)
-
-        out = grouped_conv(out1, out2)
-
-        return self.fc(out)
-
-
 class BenchmarkResNet(nn.Module):
     def __init__(self, n=9, in_channels=3, out_channels=10):
         super(BenchmarkResNet, self).__init__()
