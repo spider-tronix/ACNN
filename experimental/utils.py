@@ -16,7 +16,7 @@ def mean_cifar10(data_loc='./data'):
         root=data_loc, train=True, download=True,
         transform=train_transform)
 
-    return data_set.data.mean(axis=(0, 1, 2)) / 255
+    return list(data_set.data.mean(axis=(0, 1, 2)) / 255)
 
 
 def std_cifar10(data_loc='./data'):
@@ -32,7 +32,7 @@ def std_cifar10(data_loc='./data'):
         root=data_loc, train=True, download=True,
         transform=train_transform)
 
-    return data_set.data.std(axis=(0, 1, 2)) / 255
+    return list(data_set.data.std(axis=(0, 1, 2)) / 255)
 
 
 def mean_cifar100(data_loc='./data'):
@@ -48,7 +48,7 @@ def mean_cifar100(data_loc='./data'):
         root=data_loc, train=True, download=True,
         transform=train_transform)
 
-    return np.mean(data_set.data, axis=(0, 1, 2)) / 255
+    return list(np.mean(data_set.data, axis=(0, 1, 2)) / 255)
 
 
 def std_cifar100(data_loc='./data'):
@@ -64,7 +64,7 @@ def std_cifar100(data_loc='./data'):
         root=data_loc, train=True, download=True,
         transform=train_transform)
 
-    return np.std(data_set.data, axis=(0, 1, 2)) / 255
+    return list(np.std(data_set.data, axis=(0, 1, 2)) / 255)
 
 
 if __name__ == '__main__':

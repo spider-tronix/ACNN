@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import os
 import sys
 import time
@@ -8,7 +6,6 @@ from os.path import dirname, abspath
 
 import numpy as np
 import torch
-import torch.nn as nn
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
@@ -16,6 +13,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 sys.path.append(dirname(dirname(abspath(__file__))))
+
 from experimental.utils import std_cifar10, mean_cifar10, std_cifar100, mean_cifar100
 from experimental.cleaner_resnet import ACNN
 from utilities.train_helpers import get_directories, train, test
@@ -31,7 +29,7 @@ args = {
     'ckpt_dir': 'ckpt/acnn/',
     'dataset': 'cifar100',
     'epochs': 200,
-    'batch_size': 200,
+    'batch_size': 256,
     'lr': 0.1,
     'lr_schedule': 0,
     'momentum': 0.9,
@@ -47,7 +45,7 @@ if not path.exists(logger_dir):
 
 
 # noinspection PyShadowingNames
-def adjust_learning_rate(optimizer: optim.sgd, epoch):
+def adjust_learning_rate(optimizer, epoch):
     if args['lr_schedule'] == 0:
         lr = args['lr'] * ((0.2 ** int(epoch >= 60)) * (0.2 ** int(epoch >= 120))
                            * (0.2 ** int(epoch >= 160) * (0.2 ** int(epoch >= 220))))
@@ -72,23 +70,25 @@ if __name__ == '__main__':
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
-            transforms.Normalize(mean_cifar10, std_cifar10),
+            transforms.Normalize(mean_cifar10(data_loc=r'E:\Datasets'), std_cifar10(data_loc=r'E:\Datasets')),
         ])
         transform_test = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize(mean_cifar10, std_cifar10),
+            transforms.Normalize(mean_cifar10(data_loc=r'E:\Datasets'), std_cifar10(data_loc=r'E:\Datasets')),
         ])
 
         train_set = torchvision.datasets.CIFAR10(
-            root='./data', train=True, download=True, transform=transform_train)
+            root=r'E:\Datasets', train=True, download=True, transform=transform_train)
         train_loader = DataLoader(
             train_set, batch_size=args['batch_size'], shuffle=True,
-            num_workers=4)
+            # num_workers=4
+        )
         test_set = torchvision.datasets.CIFAR10(
-            root='./data', train=False, download=True, transform=transform_test)
+            root=r'E:\Datasets', train=False, download=True, transform=transform_test)
         test_loader = DataLoader(
             test_set, batch_size=args['batch_size'], shuffle=False,
-            num_workers=4)
+            # num_workers=4
+        )
 
     else:
         print('To train and eval on cifar100 dataset......')
@@ -97,34 +97,37 @@ if __name__ == '__main__':
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
-            transforms.Normalize(mean_cifar100, std_cifar100),
+            transforms.Normalize(mean_cifar100(data_loc=r'E:\Datasets'), std_cifar100(data_loc=r'E:\Datasets')),
         ])
         transform_test = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize(mean_cifar100, std_cifar100),
+            transforms.Normalize(mean_cifar100(data_loc=r'E:\Datasets'), std_cifar100(data_loc=r'E:\Datasets')),
         ])
 
         train_set = torchvision.datasets.CIFAR100(
-            root='./data', train=True, download=True, transform=transform_train)
+            root=r'E:\Datasets', train=True, download=True, transform=transform_train)
         train_loader = DataLoader(
             train_set, batch_size=args['batch_size'], shuffle=True,
-            num_workers=4)
+            # num_workers=4
+        )
         test_set = torchvision.datasets.CIFAR100(
-            root='./data', train=False, download=True, transform=transform_test)
+            root=r'E:\Datasets', train=False, download=True, transform=transform_test)
         test_loader = torch.utils.data.DataLoader(
-            test_set, batch_size=args['batch_size'], shuffle=False, num_workers=4)
+            test_set, batch_size=args['batch_size'], shuffle=False,
+            # num_workers=4
+        )
 
     print('==> Building model..', args['ckpt_dir'][5:])
+
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
     model = ACNN(
         n1=args['n1'],
         n2=args['n2'],
         no_classes=args['no_classes']
     )
-    model: nn.Module
-    # noinspection PyArgumentList
-    model.cuda()
-    gpu_ids = range(args['num_gpus'])
+    model.to(device=device)
 
+    # gpu_ids = range(args['num_gpus'])
     # model = torch.nn.parallel.DataParallel(model, device_ids=gpu_ids)
     # args['snapshot'] = 'best_epoch.pth.tar'
     # print(os.path.join(args['ckpt_dir'], args['snapshot']))
@@ -149,11 +152,8 @@ if __name__ == '__main__':
     else:  # Avoid weak warnings
         writer, train_logger, test_logger = None, None, None
 
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
-
     tick = time.time()
     for epoch in range(1, args['epochs'] + 1):
-        optimizer: optim.sgd
         lr = adjust_learning_rate(optimizer, epoch + 1)
 
         train_logger = train(model, device,  # Train Loop
