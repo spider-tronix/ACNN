@@ -177,3 +177,17 @@ class ACNN(nn.Module):
         out = grouped_conv(out1, out2)
 
         return self.fc(out)
+
+
+class BenchmarkResNet(nn.Module):
+    def __init__(self, n=9, in_channels=3, out_channels=10):
+        super(BenchmarkResNet, self).__init__()
+        self.net1 = resnet(n, in_channels)
+        self.fc = nn.Linear(64, out_channels)
+
+    def forward(self, x):
+        out = self.net1(x)
+        out = F.avg_pool2d(out, out.size()[3])
+        out = out.view(out.size(0), -1)
+        out = self.fc(out)
+        return out
