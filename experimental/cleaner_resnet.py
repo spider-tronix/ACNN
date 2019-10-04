@@ -143,7 +143,7 @@ class ACNN(nn.Module):
 
         self.fc = nn.Sequential(
             nn.Linear(64, 32),
-            nn.ReLU(),
+            nn.ReLU(inplace=True),
             nn.Linear(32, 10),
             nn.LogSoftmax(dim=1)
         )
@@ -156,8 +156,3 @@ class ACNN(nn.Module):
         out = grouped_conv(out1, out2)
 
         return self.fc(out)
-
-
-model = ACNN()
-y = model(torch.rand((1, 3, 32, 32)))
-print(y)
