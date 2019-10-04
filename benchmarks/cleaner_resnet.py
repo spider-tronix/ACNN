@@ -1,19 +1,20 @@
 import torch
-from torch import nn
+# noinspection PyPep8Naming
 import torch.nn.functional as F
+from torch import nn
 
 
 class BasicBlock(nn.Module):
     expansion = 1
 
-    def __init__(self, in_filters, out_filters, downsample=None):
+    def __init__(self, in_filters, out_filters, downsample=None, stride=1):
         super(BasicBlock, self).__init__()
 
         self.single_block = nn.Sequential(
-            nn.Conv2d(in_filters, out_filters, 3, padding=1),
+            nn.Conv2d(in_filters, out_filters, 3, padding=1, bias=False, stride=stride),
             nn.BatchNorm2d(out_filters),
             nn.ReLU(inplace=True),
-            nn.Conv2d(in_filters, out_filters, 3, padding=1),
+            nn.Conv2d(out_filters, out_filters, 3, padding=1, bias=False),
             nn.BatchNorm2d(out_filters)
         )
         self.downsample = downsample
@@ -49,14 +50,16 @@ class CifarResNet(nn.Module):
 
     def _make_layer(self, filters, no_layers):
         downsample = None
+        stride = 1
 
         if self.filters != filters:
             downsample = nn.Sequential(
                 nn.Conv2d(self.filters, filters, 1, stride=2, bias=False),
                 nn.BatchNorm2d(filters),
             )
+            stride = 2
 
-        layers = [BasicBlock(self.filters, filters, downsample)]
+        layers = [BasicBlock(self.filters, filters, downsample, stride=stride)]  # Sub Sampling with Down Sampling
         self.filters = filters
         for _ in range(1, no_layers):
             layers.append(BasicBlock(self.filters, filters))
@@ -79,4 +82,4 @@ def resnet(n=5, in_channels=3):
 
 model = resnet()
 # print(model)
-print(model(torch.rand((1, 3, 32, 32))))
+y = model(torch.rand((1, 3, 32, 32)))
