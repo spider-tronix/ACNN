@@ -79,11 +79,11 @@ class CifarResNet(nn.Module):
         for i in range(2, 6 * self.n + 2):
             if id_dict[f'id{s}'] is None:
                 id_dict[f'id{s}'] = out  # residual
-                print('-' * 40, '>')
+                # print('-' * 40, '>')
             out = layers[f'conv{i}'](out)
             out = layers[f'bn{i}'](out)
 
-            print(out.shape, '\t\t |')
+            # print(out.shape, '\t\t |')
 
             if self.relu_list[i] == 1:  # normal ReLU 
                 out = layers[f'relu{i}'](out)
@@ -95,7 +95,7 @@ class CifarResNet(nn.Module):
                     id_dict[f'id{s}'] = layers[f'subSample{sub_i}_relu'](id_dict[f'id{s}'])
 
                 out += id_dict[f'id{s}']  # residual added
-                print('<', '-' * 40)
+                # print('<', '-' * 40)
                 out = F.relu(out)
                 s += 1
 
