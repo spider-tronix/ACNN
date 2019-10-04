@@ -73,7 +73,7 @@ def train(model: nn.Module, device,
     print('\nTraining Accuracy: {}/{} ({:.4f}%)'.format(correct, len(train_loader.dataset),
                                                         100. * correct / len(train_loader.dataset)))
 
-    return step_log, loss_log, acc_log
+    return (step_log, loss_log, acc_log)
 
 
 def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader,
@@ -120,7 +120,7 @@ def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader,
     print('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset), test_acc))
 
-    return step_log, loss_log, acc_log
+    return (step_log, loss_log, acc_log, test_acc), test_acc
 
 
 # noinspection PyShadowingNames

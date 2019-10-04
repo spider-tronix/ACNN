@@ -25,6 +25,7 @@ if __name__ == '__main__':
     epochs = 5
     batch_size = 64
     learning_rate = 0.01
+    best_acc = 0
 
     graphs = True
     csv = True
@@ -35,7 +36,7 @@ if __name__ == '__main__':
 
     # Loading Data
     data_loc = r'E:\Datasets'
-    train_loader, test_loader = load_data(data_loc, batch_size, download=download, dataset=dataset_name)
+    train_loader, test_loader, save_models_dir = load_data(data_loc, batch_size, download=download, dataset=dataset_name)
 
     # noinspection PyUnresolvedReferences
     model = VanillaACNN(*default_config(dataset=dataset_name, model=model_name)).to(device=device)
@@ -60,9 +61,15 @@ if __name__ == '__main__':
                              optimizer, epoch,
                              log_interval=100, writer=writer, logger=train_logger)
 
-        test_logger = test(model, device,  # Evaluation Loop
+        test_logger, acc = test(model, device,  # Evaluation Loop
                            test_loader, epoch,
                            writer=writer, logger=test_logger)
+        
+        if acc > best_acc:
+            best_acc = acc
+            torch.save(model.state_dict(), os.path.join(save_models_dir, 'best_epoch' + '.pth.tar'))
+            torch.save(model.state_dict(), os.path.join(save_models_dir, 'epoch_%s' % epoch + '.pth.tar'))
+
     run_time = time.time() - tick
 
     if graphs:  # Plot log to graphs
