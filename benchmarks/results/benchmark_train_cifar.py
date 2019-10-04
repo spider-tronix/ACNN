@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.datasets import CIFAR10
 
-sys.path.append(dirname(dirname(abspath(__file__))))
+sys.path.append(dirname(dirname(dirname(abspath(__file__)))))
 
 from benchmarks.models.cifar_resnet_v2 import BenchmarkResNet
 from utilities.train_helpers import get_directories, train, test
@@ -61,7 +61,7 @@ if __name__ == '__main__':
 
         print('To train and eval on cifar10 dataset......')
         num_classes = 10
-        data_loc = r'E:\Datasets'
+        data_loc = r'./data'
 
         transform_train = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
@@ -123,6 +123,7 @@ if __name__ == '__main__':
 
     tick = time.time()
     for epoch in range(start_epoch, args['epochs'] + 1):
+        lr = adjust_learning_rate(optimizer, epoch)
         train_logger = train(model, device,  # Train Loop
                              train_loader,
                              optimizer, epoch=epoch, criterion=criterion,
