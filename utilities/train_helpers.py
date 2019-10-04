@@ -82,6 +82,7 @@ def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader,
          epoch, criterion, writer=None, logger=None, ):
     """
     Performs evaluation on dataset
+    :param criterion: Loss function used
     :param model: Model Class
     :param device: Device to test on. Use 'cuda:0' for GPU acceleration
     :param test_loader: Iterable Dataset

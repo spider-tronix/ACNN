@@ -59,7 +59,7 @@ class CifarAcnnResNet(nn.Module):
         Architecture optimized for training on CIFAR-10 dataset.
     """
 
-    def __init__(self, n1, n2):
+    def __init__(self, n1):
         super(CifarAcnnResNet, self).__init__()
 
         self.features_net = CifarClippedResNet(n1)
