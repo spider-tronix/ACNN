@@ -1,6 +1,8 @@
 import os
+import sys
 from os.path import abspath, dirname
 import argparse
+sys.path.append(dirname(dirname(dirname(abspath(__file__)))))
 
 import time
 import numpy as np
@@ -16,8 +18,9 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from utilities.train_helpers import get_directories, train
-from utilities.cifar_utils.utils import std_cifar10, mean_cifar10
+from utilities.cifar_utils import std_cifar10, mean_cifar10
 from utilities.visuals import plot_logs, write_csv, write_to_readme
+from experimental.Cifar_AcnnResNet import CifarAcnnResNet
 
 
 def parse_train_args():
@@ -93,7 +96,7 @@ if __name__ == '__main__':
     
     #----------------------Initialise model----------------------#
 
-    model = CifarResNet(n=5).cuda()
+    model = CifarAcnnResNet(n=args.n1).cuda()
     optimizer = optim.SGD(model.parameters(), lr=args.lr, 
                             momentum=args.momentum, 
                             nesterov=args.nesterov, 
@@ -108,7 +111,6 @@ if __name__ == '__main__':
     device = "cuda:0"
     best_acc = 0
     start_epoch = 0
-    criterion = nn.CrossEntropyLoss()
 
     #--------------------Tensorboard writer---------------------------#
 
@@ -123,9 +125,7 @@ if __name__ == '__main__':
     
     tick = time.time()
     for epoch in range(start_epoch, args.epochs):
-
         lr = adjust_learning_rate(args, optimizer, epoch + 1)
-
         train_logger = train(model, device,  # Train Loop
                              train_loader,
                              optimizer, epoch,

@@ -6,7 +6,7 @@ import torch
 import torch.nn.functional as F
 
 sys.path.append(dirname(dirname(abspath(__file__))))
-from experimental.cifar_resnet import CifarResNet
+from benchmarks.models.cifar_resnet_v1 import CifarResNet
 from utilities.train_helpers import grouped_conv
 
 
