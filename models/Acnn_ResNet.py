@@ -2,7 +2,7 @@ from torch import nn
 # noinspection PyPep8Naming
 import torch.nn.functional as F
 
-from benchmarks.models.base_resnet import BaseResNet
+from benchmarks.models.base_resnet_v1 import BaseResNet
 from utilities.train_helpers import grouped_conv
 
 
