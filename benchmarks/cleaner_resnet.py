@@ -5,9 +5,16 @@ from torch import nn
 
 
 class BasicBlock(nn.Module):
-    expansion = 1
+    """Performs a single ResNet operation with sub-sampling and down-sampling if necessary"""
 
     def __init__(self, in_filters, out_filters, downsample=None, stride=1):
+        """
+        Init all class variables
+        :param in_filters: Input Channels
+        :param out_filters: Output Channels
+        :param downsample: Either None or a nn.Sequential to perform if necessary
+        :param stride: For sub-sampling layers
+        """
         super(BasicBlock, self).__init__()
 
         self.single_block = nn.Sequential(
@@ -20,47 +27,86 @@ class BasicBlock(nn.Module):
         self.downsample = downsample
 
     def forward(self, x):
-        identity = x
+        identity = x  # Residual
         out = self.single_block(x)
 
         if self.downsample is not None:
             identity = self.downsample(x)
 
-        out += identity
+        out += identity  # Residual Connection
         return F.relu(out)
 
 
 class CifarResNet(nn.Module):
+    """
+    ResNet designed for CIFAR dataset.
+    The first layer is 3×3 convolutions. Then we use a stack of 6n layers
+    with 3×3 convolutions on the feature maps of sizes {32; 16; 8}
+    respectively,with 2n layers for each feature map size. The numbers of
+    filters are {16; 32; 64} respectively. The sub-sampling is performed
+    by convolutions with a stride of 2.
+
+    There are totally 6n+1 stacked weighted layers.
+    """
 
     def __init__(self, layers, in_channels=3):
+        """
+        Init all class variables
+        :param layers: List that depends on n. Function included for auto decision
+        :param in_channels: No. of channels in dataset image. 3 if RGB, 1 if grayscale
+        """
         super(CifarResNet, self).__init__()
 
+        # Layer 1
+        # Output map size : 32x32
+        # No of filters: 16
+        # No of Weighted Layers : 1
         self.layer1 = nn.Sequential(
             nn.Conv2d(in_channels, 16, 3, stride=1, padding=1, bias=False),
             nn.BatchNorm2d(16),
             nn.ReLU(inplace=True)
         )
 
-        self.filters = 16
-        layers[0] -= 1
+        self.filters = 16  # Update current no of filters. Tracks the need for down-sampling
+        layers[0] -= 1  # One down
 
+        # Layer 2
+        # Output map size : 32x32
+        # No of filters: 16
+        # No of Weighted Layers : 2n
         self.layer2 = self._make_layer(16, layers[0])
+
+        # Layer 3
+        # Output map size : 16x16
+        # No of filters: 32
+        # No of Weighted Layers : 2n
         self.layer3 = self._make_layer(32, layers[1])
+
+        # Layer 2
+        # Output map size : 8x8
+        # No of filters: 64
+        # No of Weighted Layers : 2n
         self.layer4 = self._make_layer(64, layers[2])
 
     def _make_layer(self, filters, no_layers):
+        """
+        Generates ResNet Sub-Block
+        :param filters: Required no of filter in sub-block
+        :param no_layers: Required no of BasicBlocks in sub-block
+        :return: Sequential Model of the Sub-Block
+        """
         downsample = None
         stride = 1
 
-        if self.filters != filters:
+        if self.filters != filters:  # Case for down-sampling
             downsample = nn.Sequential(
-                nn.Conv2d(self.filters, filters, 1, stride=2, bias=False),
+                nn.Conv2d(self.filters, filters, 1, stride=2, bias=False),  # Conv1x1 with stride 2
                 nn.BatchNorm2d(filters),
             )
-            stride = 2
+            stride = 2  # Sub Sample
 
         layers = [BasicBlock(self.filters, filters, downsample, stride=stride)]  # Sub Sampling with Down Sampling
-        self.filters = filters
+        self.filters = filters  # Update current no of filters
         for _ in range(1, no_layers):
             layers.append(BasicBlock(self.filters, filters))
 
@@ -68,6 +114,7 @@ class CifarResNet(nn.Module):
 
     # noinspection PyPep8Naming
     def forward(self, X):
+        """Forward Prop"""
         out = self.layer1(X)
         out = self.layer2(out)
         out = self.layer3(out)
@@ -75,11 +122,14 @@ class CifarResNet(nn.Module):
         return out
 
 
+# noinspection PyShadowingNames
 def resnet(n=5, in_channels=3):
     layers = [n + 1, n, n]
     return CifarResNet(layers=layers, in_channels=in_channels)
 
 
-model = resnet()
-# print(model)
-y = model(torch.rand((1, 3, 32, 32)))
+for n in [3, 5, 7, 9, 11]:
+    model = resnet(n=n)
+    # print(model)
+    y = model(torch.rand((1, 3, 32, 32)))
+    print(y.shape)
