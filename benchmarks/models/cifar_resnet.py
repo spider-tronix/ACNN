@@ -82,7 +82,6 @@ class CifarResNet(nn.Module):
                 # print('-' * 40, '>')
             out = layers[f'conv{i}'](out)
             out = layers[f'bn{i}'](out)
-
             # print(out.shape, '\t\t |')
 
             if self.relu_list[i] == 1:  # normal ReLU 

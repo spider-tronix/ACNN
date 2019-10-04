@@ -121,6 +121,9 @@ if __name__ == '__main__':
     
     tick = time.time()
     for epoch in range(start_epoch, args['epochs']):
+
+        lr = adjust_learning_rate(args, optimizer, epoch + 1)
+        
         train_logger = train(model, device,  # Train Loop
                              train_loader,
                              optimizer, epoch,
@@ -129,7 +132,6 @@ if __name__ == '__main__':
         test_logger, acc = test(model, device,  # Evaluation Loop
                                 test_loader, epoch,
                                 writer=writer, logger=test_logger)
-        print('len', len(test_logger))
 
         #-------------Save best models------------------#
         if acc > best_acc:
