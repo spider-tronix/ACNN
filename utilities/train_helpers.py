@@ -213,6 +213,6 @@ def get_directories(model, dataset, parent_dir):
     save_models_dir = os.path.join(training_dir, 'Saved_Models')
 
     if not path.exists(save_models_dir):
-        os.mkdir(save_model_dir)
+        os.mkdir(save_models_dir)
     
     return training_dir, tensorboard_dir, save_models_dir
