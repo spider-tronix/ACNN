@@ -1,7 +1,12 @@
-import torch
-# noinspection PyPep8Naming
+import sys
+from os.path import dirname, abspath
+
 import torch.nn.functional as F
 from torch import nn
+import torch
+
+sys.path.append(dirname(dirname(abspath(__file__))))
+from utilities.train_helpers import grouped_conv
 
 
 class BasicBlock(nn.Module):
@@ -129,8 +134,30 @@ def resnet(n=5, in_channels=3):
     return CifarResNet(layers=layers, in_channels=in_channels)
 
 
-for n in [3, 5, 7, 9, 11]:
-    model = resnet(n=n)
-    # print(model)
-    y = model(torch.rand((1, 3, 32, 32)))
-    print(y.shape)
+class ACNN(nn.Module):
+
+    def __init__(self, n1=9, n2=3, in_channels=3):
+        super(ACNN, self).__init__()
+        self.features_net = resnet(n=n1, in_channels=in_channels)
+        self.filters_net = resnet(n=n2, in_channels=in_channels)
+
+        self.fc = nn.Sequential(
+            nn.Linear(64, 32),
+            nn.ReLU(),
+            nn.Linear(32, 10),
+            nn.LogSoftmax(dim=1)
+        )
+
+    # noinspection PyPep8Naming
+    def forward(self, X):
+        out1 = self.features_net(X)
+        out2 = self.features_net(X)
+
+        out = grouped_conv(out1, out2)
+
+        return self.fc(out)
+
+
+model = ACNN()
+y = model(torch.rand((1, 3, 32, 32)))
+print(y)
