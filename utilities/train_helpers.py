@@ -184,7 +184,7 @@ def get_directories(model, dataset, parent_dir):
     :param model: Instance of the model class
     :param dataset: String containing dataset name
     :param parent_dir: dir where sub directories are to be made
-    :return: Training_dir and Tensorboard_dir, for saving required files
+    :return: Training_dir and Tensorboard_dir, Save_models_dir for saving required files
     """
 
     if dataset not in ['MNIST', 'CIFAR10', 'SVHN', 'CIFAR100']:
@@ -210,4 +210,9 @@ def get_directories(model, dataset, parent_dir):
         i += 1
 
     tensorboard_dir = os.path.join(training_dir, 'Tensorboard_Summary')
-    return training_dir, tensorboard_dir
+    save_models_dir = os.path.join(training_dir, 'Saved_Models')
+
+    if not path.exists(save_models_dir):
+        os.mkdir(save_model_dir)
+    
+    return training_dir, tensorboard_dir, save_models_dir
