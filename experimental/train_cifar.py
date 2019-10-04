@@ -1,21 +1,34 @@
 from __future__ import print_function
 
 import os
+import sys
+import time
+from os import path
+from os.path import dirname, abspath
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision
-import torchvision.models as models
 import torchvision.transforms as transforms
-from torch.autograd import Variable
+from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 
+sys.path.append(dirname(dirname(abspath(__file__))))
 from experimental.utils import std_cifar10, mean_cifar10, std_cifar100, mean_cifar100
+from experimental.cleaner_resnet import ACNN
+from utilities.train_helpers import get_directories, train, test
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 args = {
+    'n1': 9,  # Features Net
+    'n2': 5,  # Filters Net,
+    'no_classes': 100,  # 100 for CIFAR100, 10 for CIFAR10
+    'graphs': True,
+    'csv': True,
     'num_gpus': 1,
-    'ckpt_dir': 'ckpt/vgg/',
+    'ckpt_dir': 'ckpt/acnn/',
     'dataset': 'cifar100',
     'epochs': 200,
     'batch_size': 200,
@@ -28,10 +41,13 @@ args = {
 
 if not os.path.exists(args['ckpt_dir']):
     os.makedirs(args['ckpt_dir'])
+logger_dir = os.path.join(dirname(dirname(abspath(__file__))), 'results')
+if not path.exists(logger_dir):
+    os.mkdir(logger_dir)
 
 
 # noinspection PyShadowingNames
-def adjust_learning_rate(optimizer, epoch):
+def adjust_learning_rate(optimizer: optim.sgd, epoch):
     if args['lr_schedule'] == 0:
         lr = args['lr'] * ((0.2 ** int(epoch >= 60)) * (0.2 ** int(epoch >= 120))
                            * (0.2 ** int(epoch >= 160) * (0.2 ** int(epoch >= 220))))
@@ -48,37 +64,6 @@ def adjust_learning_rate(optimizer, epoch):
     return lr
 
 
-# noinspection PyShadowingNames
-def train(train_loader, model, criterion, optimizer):
-    model.train()
-    for batch_idx, (inputs, targets) in enumerate(train_loader):
-        inputs, targets = inputs.cuda(), targets.cuda()
-        optimizer.zero_grad()
-        inputs, targets = Variable(inputs), Variable(targets)
-        outputs = model(inputs)
-        loss = criterion(outputs, targets)
-        loss.backward()
-        optimizer.step()
-
-
-# noinspection PyShadowingNames,PyShadowingBuiltins
-def eval(test_loader, model, epoch, lr, best_acc):
-    model.eval()
-    correct, total = 0, 0
-    with torch.no_grad():
-        for batch_idx, (inputs, targets) in enumerate(test_loader):
-            inputs, targets = inputs.cuda(), targets.cuda()
-            inputs, targets = Variable(inputs), Variable(targets)
-            outputs = model(inputs)
-
-            _, predicted = torch.max(outputs.data, 1)
-            total += targets.size(0)
-            correct += (predicted == targets).sum().item()
-    print('Epoch:', epoch, 'Accuracy: %f %%' %
-          (100 * correct / total), 'best_accuracy:', best_acc, 'lr:', lr)
-    return float(100 * correct / total)
-
-
 if __name__ == '__main__':
     if args['dataset'] == 'cifar10':
         print('To train and eval on cifar10 dataset......')
@@ -93,15 +78,18 @@ if __name__ == '__main__':
             transforms.ToTensor(),
             transforms.Normalize(mean_cifar10, std_cifar10),
         ])
+
         train_set = torchvision.datasets.CIFAR10(
             root='./data', train=True, download=True, transform=transform_train)
-        train_loader = torch.utils.data.DataLoader(train_set, batch_size=args['batch_size'], shuffle=True,
-                                                   num_workers=4)
-
+        train_loader = DataLoader(
+            train_set, batch_size=args['batch_size'], shuffle=True,
+            num_workers=4)
         test_set = torchvision.datasets.CIFAR10(
             root='./data', train=False, download=True, transform=transform_test)
-        test_loader = torch.utils.data.DataLoader(
-            test_set, batch_size=args['batch_size'], shuffle=False, num_workers=4)
+        test_loader = DataLoader(
+            test_set, batch_size=args['batch_size'], shuffle=False,
+            num_workers=4)
+
     else:
         print('To train and eval on cifar100 dataset......')
         num_classes = 100
@@ -115,43 +103,73 @@ if __name__ == '__main__':
             transforms.ToTensor(),
             transforms.Normalize(mean_cifar100, std_cifar100),
         ])
+
         train_set = torchvision.datasets.CIFAR100(
             root='./data', train=True, download=True, transform=transform_train)
-        train_loader = torch.utils.data.DataLoader(train_set, batch_size=args['batch_size'], shuffle=True,
-                                                   num_workers=4)
-
+        train_loader = DataLoader(
+            train_set, batch_size=args['batch_size'], shuffle=True,
+            num_workers=4)
         test_set = torchvision.datasets.CIFAR100(
             root='./data', train=False, download=True, transform=transform_test)
         test_loader = torch.utils.data.DataLoader(
             test_set, batch_size=args['batch_size'], shuffle=False, num_workers=4)
 
     print('==> Building model..', args['ckpt_dir'][5:])
-    model = models.vgg16(num_classes=num_classes)
-
+    model = ACNN(
+        n1=args['n1'],
+        n2=args['n2'],
+        no_classes=args['no_classes']
+    )
+    model: nn.Module
+    # noinspection PyArgumentList
     model.cuda()
     gpu_ids = range(args['num_gpus'])
-    # model = torch.nn.parallel.DataParallel(model, device_ids=gpu_ids)
 
+    # model = torch.nn.parallel.DataParallel(model, device_ids=gpu_ids)
     # args['snapshot'] = 'best_epoch.pth.tar'
     # print(os.path.join(args['ckpt_dir'], args['snapshot']))
     # model.load_state_dict(torch.load(os.path.join(args['ckpt_dir'], args['snapshot'])))
 
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(
-    ), lr=args['lr'], momentum=args['momentum'], nesterov=args['nesterov'], weight_decay=args['weight_decay'])
+    optimizer = optim.SGD(
+        model.parameters(),
+        lr=args['lr'], momentum=args['momentum'],
+        weight_decay=args['weight_decay'],
+        nesterov=args['nesterov']
+    )
 
     best_acc = 0
     start_epoch = 0
 
-    for epoch in range(start_epoch, args['epochs']):
+    training_dir, tensorboard_dir = get_directories(model, args['dataset'].upper(), logger_dir)
+    # Tensorboard writer
+    if args['graphs'] or args['csv']:
+        writer = SummaryWriter(tensorboard_dir)  # Handles the creation of tensorboard logs
+        train_logger = (np.array([]), np.array([]), np.array([]))  # Handles the creation of png, csv logs
+        test_logger = (np.array([]), np.array([]), np.array([]))
+    else:  # Avoid weak warnings
+        writer, train_logger, test_logger = None, None, None
+
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
+    tick = time.time()
+    for epoch in range(1, args['epochs'] + 1):
+        optimizer: optim.sgd
         lr = adjust_learning_rate(optimizer, epoch + 1)
 
-        train(train_loader, model, criterion, optimizer)
-        acc = eval(test_loader, model, epoch, lr, best_acc)
+        train_logger = train(model, device,  # Train Loop
+                             train_loader,
+                             optimizer, epoch,
+                             log_interval=100, writer=writer, logger=train_logger)
 
-        if acc > best_acc:
-            best_acc = acc
-            torch.save(model.state_dict(), os.path.join(
-                args['ckpt_dir'], 'best_epoch' + '.pth.tar'))
-        torch.save(model.state_dict(), os.path.join(
-            args['ckpt_dir'], 'epoch_%s' % epoch + '.pth.tar'))
+        test_logger = test(model, device,  # Evaluation Loop
+                           test_loader, epoch,
+                           writer=writer, logger=test_logger)
+    run_time = time.time() - tick
+
+    # TODO: The part below to be integrated into train loop
+    # if acc > best_acc:
+    #     best_acc = acc
+    #     torch.save(model.state_dict(), os.path.join(
+    #         args['ckpt_dir'], 'best_epoch' + '.pth.tar'))
+    # torch.save(model.state_dict(), os.path.join(
+    #     args['ckpt_dir'], 'epoch_%s' % epoch + '.pth.tar'))

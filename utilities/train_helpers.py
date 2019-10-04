@@ -6,7 +6,6 @@ import torch
 import torch.nn as nn
 # noinspection PyPep8Naming
 import torch.nn.functional as F
-# noinspection PyPep8Naming
 from torch.utils.data import DataLoader
 
 
@@ -39,7 +38,7 @@ def train(model: nn.Module, device,
     for batch_idx, (data, target) in enumerate(train_loader, start=1):
         data, target = data.to(device), target.to(device)
 
-        output = model(data)  # Foward Prop
+        output = model(data)  # Forward Prop
         loss = F.nll_loss(output, target)
 
         optimizer.zero_grad()
@@ -188,8 +187,8 @@ def get_directories(model, dataset, parent_dir):
     :return: Training_dir and Tensorboard_dir, for saving required files
     """
 
-    if dataset not in ['MNIST', 'CIFAR10', 'SVHN']:
-        raise NotImplementedError('Only MNIST/SVHN/CIFAR10')
+    if dataset not in ['MNIST', 'CIFAR10', 'SVHN', 'CIFAR100']:
+        raise NotImplementedError('Only MNIST/SVHN/CIFAR10/CIFAR100')
 
     model_name = model.__class__.__name__
     parent_dir = os.path.abspath(parent_dir)
