@@ -125,6 +125,7 @@ class CifarResNet(nn.Module):
 # noinspection PyShadowingNames
 def resnet(n=5, in_channels=3):
     layers = [n + 1, n, n]
+    # 2n refers to no of weighted layers. Class rather takes basic block as that Makes more sense
     return CifarResNet(layers=layers, in_channels=in_channels)
 
 
