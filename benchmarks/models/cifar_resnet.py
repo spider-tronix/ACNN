@@ -16,7 +16,7 @@ class CifarResNet(nn.Module):
         """
         super(CifarResNet, self).__init__()
 
-        if n not in [3, 5, 7, 9, 11]:
+        if n not in [3, 5, 7, 9, 18]:
             raise NotImplementedError('Resnet 20/32/44/56/110 only implemented. \
                                             Contact Sharan or Sachin, if u need any other model')
         self.n = n
@@ -107,6 +107,6 @@ class CifarResNet(nn.Module):
 
 
 if __name__ == "__main__":
-    n = 5  # try 5, 7, 9, 11
+    n = 5  # try 5, 7, 9, 18
     model = CifarResNet(n)
     print(model(torch.rand((1, 3, 32, 32))))

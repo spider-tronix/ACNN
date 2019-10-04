@@ -15,7 +15,7 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from utilities.train_helpers import get_directories, train
-from experimental.utils import std_cifar10, mean_cifar10
+from utilities.cifar_utils.utils import std_cifar10, mean_cifar10
 from utilities.visuals import plot_logs, write_csv, write_to_readme
 
 args = {
