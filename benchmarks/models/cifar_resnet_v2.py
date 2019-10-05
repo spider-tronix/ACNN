@@ -54,7 +54,7 @@ class CifarResNet(nn.Module):
     There are totally 6n+1 stacked weighted layers and 3n residual connections.
     """
 
-    def __init__(self, layers, in_channels=3):
+    def __init__(self, layers, in_channels=3, channels=None):
         """
         Init all class variables
         :param layers: List that depends on n. Function included for auto decision
@@ -62,38 +62,40 @@ class CifarResNet(nn.Module):
         """
         super(CifarResNet, self).__init__()
 
+        if channels is None:
+            channels = [16, 32, 64]
         # Layer 1
         # Output map size : 32x32
         # No of filters: 16
         # No of Weighted Layers : 1
         self.layer1 = nn.Sequential(
-            nn.Conv2d(in_channels, 16, 3, stride=1, padding=1, bias=False),
-            nn.BatchNorm2d(16),
+            nn.Conv2d(in_channels, channels[0], 3, stride=1, padding=1, bias=False),
+            nn.BatchNorm2d(channels[0]),
             nn.ReLU()
         )
 
-        self.filters = 16  # Update current no of filters. Tracks the need for down-sampling
+        self.filters = channels[0]  # Update current no of filters. Tracks the need for down-sampling
         layers[0] -= 1  # One down
 
         # Layer 2
         # Output map size : 32x32
         # No of filters: 16
         # No of Weighted Layers : 2n
-        self.layer2 = self._make_layer(16, layers[0])
+        self.layer2 = self._make_layer(channels[0], layers[0])
 
         # Layer 3
         # Output map size : 16x16
         # No of filters: 32
         # No of Weighted Layers : 2n
-        self.layer3 = self._make_layer(32, layers[1])
+        self.layer3 = self._make_layer(channels[1], layers[1])
 
         # Layer 2
         # Output map size : 8x8
         # No of filters: 64
         # No of Weighted Layers : 2n
-        self.layer4 = self._make_layer(64, layers[2])
+        self.layer4 = self._make_layer(channels[2], layers[2])
 
-        self._weights_initialise()  # Zero initialize the weights for better performance
+        # self._weights_initialise()  # Zero initialize the weights for better performance
 
     def _make_layer(self, filters, no_layers):
         """
@@ -149,10 +151,10 @@ class CifarResNet(nn.Module):
 
 
 # noinspection PyShadowingNames
-def resnet(n=5, in_channels=3):
+def resnet(n=5, in_channels=3, channels=None):
     layers = [n + 1, n, n]
     # 2n refers to no of weighted layers. Class rather takes basic block as that Makes more sense
-    return CifarResNet(layers=layers, in_channels=in_channels)
+    return CifarResNet(layers=layers, in_channels=in_channels, channels=channels)
 
 
 class BenchmarkResNet(nn.Module):

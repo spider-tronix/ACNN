@@ -96,5 +96,5 @@ class CifarAcnnResNet(nn.Module):
 
 if __name__ == "__main__":
     a = torch.rand((1, 3, 32, 32))
-    model = CifarAcnnResNet(5)
+    model = CifarAcnnResNet(18)
     print(model(a))
