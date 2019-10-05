@@ -72,7 +72,7 @@ if __name__ == '__main__':
         num_classes = 10
         data_loc = r'./data'
 
-        train_loader, test_loader = load_data(data_loc, args.bs, dataset=args.dataset, download=False)
+        train_loader, test_loader = load_data(data_loc, args.batch_size, dataset=args.dataset, download=False)
     else:
         raise NotImplementedError('Only Cifar10 dataset')
 
