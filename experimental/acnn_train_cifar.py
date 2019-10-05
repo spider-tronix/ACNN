@@ -3,6 +3,7 @@ import os
 import sys
 import time
 from os.path import abspath, dirname
+
 sys.path.append(dirname(dirname(abspath(__file__))))
 
 import numpy as np
@@ -10,7 +11,6 @@ import torch
 import torch.optim as optim
 from torch import nn
 from torch.utils.tensorboard import SummaryWriter
-
 
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from utilities.train_helpers import get_directories, test, train
@@ -26,12 +26,12 @@ def parse_train_args():
     parser.add_argument("--n2", default=3, help="ResNet depth for Filters Network")
     parser.add_argument("--bs", default=128, help="Batch Size for training data")
     parser.add_argument("--dataset", default='CIFAR10', help="Dataset for Training")
-    parser.add_argument("--epochs", default=1, help="Number of epochs")
+    parser.add_argument("--epochs", default=10, help="Number of epochs")
     parser.add_argument("--lr", default=0.1, help="Initial Learning Rate")
     parser.add_argument("--logs", default=True, help="TensorBoard Logging")
     parser.add_argument("--log-dir", default='./results', help="Directory to save logs")
     parser.add_argument("--seed", default=0, help="value of torch.manual_seed")
-    #parser.add_argument("--lr-schedule", default=0, help="LR Scheduler profile to adjust learning rate")
+    # parser.add_argument("--lr-schedule", default=0, help="LR Scheduler profile to adjust learning rate")
     parser.add_argument("--lr-factor", default=0.1, help="factor by which lr is reduced by scheduler \
         https://pytorch.org/docs/stable/optim.html#torch.optim.lr_scheduler.ReduceLROnPlateau")
     parser.add_argument("--patience", default=10, help="Number of epochs with no improvement after \
@@ -81,13 +81,13 @@ if __name__ == '__main__':
     # model = ACNN(n1=args.n1,
     #              n2=args.n2).cuda()
 
-    model = BenchmarkResNet(18).cuda()
+    model = ACNN().cuda()
     optimizer = optim.SGD(model.parameters(), lr=args.lr,
                           momentum=args.momentum,
                           nesterov=args.nesterov,
                           weight_decay=args.weight_decay)
     scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=args.lr_factor,
-                                    patience=args.patience, verbose=True)
+                                  patience=args.patience, verbose=True)
     criterion = nn.NLLLoss()
 
     # ----------------------Get Logging Directories---------------------- #
@@ -118,13 +118,13 @@ if __name__ == '__main__':
                              log_interval=100, writer=writer, logger=None)  # Removed manual logger to train faster
 
         test_logger, acc, loss = test(model, device,  # Evaluation Loop
-                                    test_loader, epoch,
-                                    criterion=criterion,
-                                    writer=writer, logger=None)
-        
+                                      test_loader, epoch,
+                                      criterion=criterion,
+                                      writer=writer, logger=None)
+
         scheduler.step(loss)
-        
-        if acc > best_acc: # save best models
+
+        if acc > best_acc:  # save best models
             best_acc = acc
             torch.save(model.state_dict(), os.path.join(save_models_dir, 'best_epoch' + '.pth.tar'))
             torch.save(model.state_dict(), os.path.join(save_models_dir, 'epoch_%s' % epoch + '.pth.tar'))
