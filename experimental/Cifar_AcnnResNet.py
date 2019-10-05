@@ -108,7 +108,9 @@ class CifarAcnnResNet(nn.Module):
 
 
 if __name__ == "__main__":
-    batch_size = 4
+    batch_size = 2
+    # TODO: Avoid single case specific model creation. Refer acnn_resnet_cifar.py's implementation of explosion
+    # TODO: countering v2 in this commit (I might change it to v1 dependant upon performance"""
     a = torch.rand((batch_size, 3, 32, 32))
     model = CifarAcnnResNet(18, batch_size)
     print(model(a))
