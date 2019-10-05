@@ -138,7 +138,7 @@ def grouped_conv(img, filters):
         input=img.view(1, batch_size * c_in, h1, w1),
         weight=filters.view(batch_size * c_out, c_in, h2, w2),
         groups=batch_size
-    ).reshape(batch_size, -1)
+    )
 
 
 def default_config(model, dataset):

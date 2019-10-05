@@ -59,10 +59,11 @@ class CifarAcnnResNet(nn.Module):
         Architecture optimized for training on CIFAR-10 dataset.
     """
 
-    def __init__(self, n1):
+    def __init__(self, n1, batch_size):
         super(CifarAcnnResNet, self).__init__()
 
         self.features_net = CifarClippedResNet(n1)
+        self.batch_size = batch_size
 
         # gives 64 (3x3) filters
         self.filters_net = nn.Sequential(
@@ -73,6 +74,8 @@ class CifarAcnnResNet(nn.Module):
             nn.Conv2d(32, 64, 5, stride=3),
             nn.ReLU()
         )
+
+        self.bn = nn.BatchNorm2d(self.batch_size * 64)  # batch_size * c_out
 
         self.fc = nn.Sequential(
             nn.Linear(64 * 6 * 6, 1024),
@@ -86,15 +89,26 @@ class CifarAcnnResNet(nn.Module):
         )
 
     def forward(self, X):
+
+        assert(X.shape[0]  == self.batch_size)
+
         out1 = self.features_net(X)
         out2 = self.filters_net(X)
 
         out = grouped_conv(out1, out2)
 
-        return self.fc(out)
+        """
+        The above operation is a Convolution operation.
+        Hence we apply batch normalization and ReLU non-linearity
+        before feeding it to the classifier.
+        """
+        out = F.relu(self.bn(out))
+
+        return self.fc(out.reshape(self.batch_size, -1))
 
 
 if __name__ == "__main__":
-    a = torch.rand((1, 3, 32, 32))
-    model = CifarAcnnResNet(18)
+    batch_size = 4
+    a = torch.rand((batch_size, 3, 32, 32))
+    model = CifarAcnnResNet(18, batch_size)
     print(model(a))
