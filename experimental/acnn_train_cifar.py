@@ -49,8 +49,8 @@ def adjust_learning_rate(args, optimizer, epoch):
         lr = args.lr * ((0.2 ** int(epoch >= 60)) * (0.2 ** int(epoch >= 120))
                         * (0.2 ** int(epoch >= 160) * (0.2 ** int(epoch >= 220))))
     elif args.lr_schedule == 1:
-        lr = args.lr * ((0.1 ** int(epoch >= 150))
-                        * (0.1 ** int(epoch >= 225)))
+        lr = args.lr * ((0.1 ** int(epoch >= 150)) *
+                        (0.1 ** int(epoch >= 225)))
     elif args.lr_schedule == 2:
         lr = args.lr * ((0.1 ** int(epoch >= 80)) *
                         (0.1 ** int(epoch >= 120)))
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     if args.dataset == 'CIFAR10':
         print('To train and eval on cifar10 dataset......')
         num_classes = 10
-        data_loc = r'E:\Datasets'
+        data_loc = r'./data'
 
         train_loader, test_loader = load_data(data_loc, args.bs, dataset=args.dataset, download=False)
     else:

@@ -16,7 +16,7 @@ sys.path.append(dirname(dirname(dirname(abspath(__file__)))))
 
 from benchmarks.models.cifar_resnet_v2 import BenchmarkResNet
 from utilities.train_helpers import get_directories, train, test
-from utilities.cifar_utils import std_cifar10, mean_cifar10
+from utilities.data import std_cifar10, mean_cifar10
 from utilities.visuals import plot_logs, write_csv, write_to_readme
 
 args = {
