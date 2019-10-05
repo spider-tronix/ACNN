@@ -81,7 +81,7 @@ if __name__ == '__main__':
     # model = ACNN(n1=args.n1,
     #              n2=args.n2).cuda()
 
-    model = BenchmarkResNet(18)#.cuda()
+    model = BenchmarkResNet(18).cuda()
     optimizer = optim.SGD(model.parameters(), lr=args.lr,
                           momentum=args.momentum,
                           nesterov=args.nesterov,
@@ -104,7 +104,7 @@ if __name__ == '__main__':
         writer = None
 
     # ----------------------Start Training---------------------- #
-    device = "cpu"#"cuda:0"
+    device = "cuda:0"
     best_acc = 0
     start_epoch = 1
 
