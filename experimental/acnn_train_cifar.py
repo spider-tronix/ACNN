@@ -112,6 +112,8 @@ if __name__ == '__main__':
     for epoch in range(start_epoch, args.epochs + 1):
         # noinspection PyTypeChecker
         # lr = adjust_learning_rate(args, optimizer, epoch)
+        for param_group in optimizer.param_groups:
+            print(param_group['lr'])
         train_logger = train(model, device,  # Train Loop
                              train_loader,
                              optimizer, epoch=epoch, criterion=criterion,
