@@ -24,7 +24,7 @@ def parse_train_args():
     parser = argparse.ArgumentParser("Features Network --> ResNet, Filters network --> Drastic Convolution")
     parser.add_argument("--n1", default=18, help="ResNet depth for Features Network")
     parser.add_argument("--n2", default=3, help="ResNet depth for Filters Network")
-    parser.add_argument("--bs", default=128, help="Batch Size for training data")
+    parser.add_argument("--batch_size", default=128, help="Batch Size for training data")
     parser.add_argument("--dataset", default='CIFAR10', help="Dataset for Training")
     parser.add_argument("--epochs", default=10, help="Number of epochs")
     parser.add_argument("--lr", default=0.1, help="Initial Learning Rate")
