@@ -123,7 +123,7 @@ def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader,
     print('Test set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset), test_acc))
 
-    return (step_log, loss_log, acc_log), test_acc
+    return (step_log, loss_log, acc_log),  test_loss, test_acc,
 
 
 # noinspection PyShadowingNames

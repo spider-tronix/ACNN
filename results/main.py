@@ -61,9 +61,9 @@ if __name__ == '__main__':
                              optimizer, epoch,
                              log_interval=100, writer=writer, logger=train_logger)
 
-        test_logger, acc = test(model, device,  # Evaluation Loop
-                           test_loader, epoch,
-                           writer=writer, logger=test_logger)
+        test_logger, acc, loss = test(model, device,  # Evaluation Loop
+                                    test_loader, epoch,
+                                    writer=writer, logger=test_logger)
         
         if acc > best_acc:
             best_acc = acc
