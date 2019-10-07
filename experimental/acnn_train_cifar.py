@@ -42,25 +42,6 @@ def parse_train_args():
     return parser.parse_args()
 
 
-# noinspection PyShadowingNames
-"""
-def adjust_learning_rate(args, optimizer, epoch):    
-    if args.lr_schedule == 0:
-        lr = args.lr * ((0.2 ** int(epoch >= 60)) * (0.2 ** int(epoch >= 120))
-                        * (0.2 ** int(epoch >= 160) * (0.2 ** int(epoch >= 220))))
-    elif args.lr_schedule == 1:
-        lr = args.lr * ((0.1 ** int(epoch >= 150)) *
-                        (0.1 ** int(epoch >= 225)))
-    elif args.lr_schedule == 2:
-        lr = args.lr * ((0.1 ** int(epoch >= 80)) *
-                        (0.1 ** int(epoch >= 120)))
-    else:
-        raise Exception("Invalid learning rate schedule!")
-    for param_group in optimizer.param_groups:
-        param_group['lr'] = lr
-    return lr
-"""
-
 if __name__ == '__main__':
     args = parse_train_args()
 
@@ -120,9 +101,8 @@ if __name__ == '__main__':
                              log_interval=100, writer=writer, logger=None)  # Removed manual logger to train faster
 
         test_logger, acc, loss = test(model, device,  # Evaluation Loop
-                                      test_loader, epoch,
-                                      criterion=criterion,
-                                      writer=writer, logger=None)
+                                      test_loader, criterion,
+                                      epoch, writer=writer, logger=None)
 
         scheduler.step(loss)
 
