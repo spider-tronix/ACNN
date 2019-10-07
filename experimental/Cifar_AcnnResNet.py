@@ -21,7 +21,6 @@ class CifarClippedResNet(CifarResNet):
 
     def forward(self, X):
 
-    
         layers = {name: module for name, module in self.model.named_modules()}
         id_dict = {f'id{i}': None for i in range(3 * self.n)}  
 
@@ -59,11 +58,10 @@ class CifarAcnnResNet(nn.Module):
         Architecture optimized for training on CIFAR-10 dataset.
     """
 
-    def __init__(self, n1, batch_size):
+    def __init__(self, n1):
         super(CifarAcnnResNet, self).__init__()
 
         self.features_net = CifarClippedResNet(n1)
-        self.batch_size = batch_size
 
         # gives 64 (3x3) filters
         self.filters_net = nn.Sequential(
@@ -75,7 +73,10 @@ class CifarAcnnResNet(nn.Module):
             nn.ReLU()
         )
 
-        self.bn = nn.BatchNorm2d(self.batch_size * 64)  # batch_size * c_out
+        self.bn = nn.Sequential(
+            nn.BatchNorm2d(64),
+            nn.ReLU()
+        )
 
         self.fc = nn.Sequential(
             nn.Linear(64 * 6 * 6, 1024),
@@ -90,27 +91,16 @@ class CifarAcnnResNet(nn.Module):
 
     def forward(self, X):
 
-        assert(X.shape[0]  == self.batch_size)
-
         out1 = self.features_net(X)
         out2 = self.filters_net(X)
 
         out = grouped_conv(out1, out2)
-
-        """
-        The above operation is a Convolution operation.
-        Hence we apply batch normalization and ReLU non-linearity
-        before feeding it to the classifier.
-        """
-        out = F.relu(self.bn(out))
-
-        return self.fc(out.reshape(self.batch_size, -1))
-
+        out = self.bn(out.view(out2.shape[0], -1, out.shape[2], out.shape[3]))  # Batchnorm and relu
+        
+        return self.fc(out.view(out2.shape[0], -1))
+        
 
 if __name__ == "__main__":
-    batch_size = 2
-    # TODO: Avoid single case specific model creation. Refer acnn_resnet_cifar.py's implementation of explosion
-    # TODO: countering v2 in this commit (I might change it to v1 dependant upon performance"""
-    a = torch.rand((batch_size, 3, 32, 32))
-    model = CifarAcnnResNet(18, batch_size)
+    a = torch.rand((2, 3, 32, 32))
+    model = CifarAcnnResNet(18)
     print(model(a))
