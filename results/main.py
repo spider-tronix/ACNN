@@ -7,6 +7,8 @@ from os.path import dirname, abspath
 import numpy as np
 import torch
 import torch.optim as optim
+import torch.nn as nn
+import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 
 sys.path.append(dirname(dirname(abspath(__file__))))
@@ -31,20 +33,22 @@ if __name__ == '__main__':
     csv = True
     logger_dir = os.path.join(dirname(dirname(abspath(__file__))), 'results')
 
-    download = True     # Doesn't re-download if existent. Def. to True is better
+    download = False     # Doesn't re-download if existent. Def. to True is better
     torch.manual_seed(seed)
 
     # Loading Data
-    data_loc = r'E:\Datasets'
-    train_loader, test_loader, save_models_dir = load_data(data_loc, batch_size, download=download, dataset=dataset_name)
+    #data_loc = r'E:\Datasets'
+    data_loc = r'/home/sachin/Datasets/'
+    train_loader, test_loader = load_data(data_loc, batch_size, download=download, dataset=dataset_name)
 
     # noinspection PyUnresolvedReferences
     model = VanillaACNN(*default_config(dataset=dataset_name, model=model_name)).to(device=device)
     optimizer = optim.SGD(model.parameters(), lr=learning_rate)
+    criterion = nn.NLLLoss()
 
     if not path.exists(logger_dir):
         os.mkdir(logger_dir)
-    training_dir, tensorboard_dir = get_directories(model, dataset_name, logger_dir)
+    training_dir, tensorboard_dir, save_models_dir = get_directories(model, dataset_name, logger_dir)
 
     # Tensorboard writer
     if graphs or csv:
@@ -58,11 +62,11 @@ if __name__ == '__main__':
     for epoch in range(1, epochs + 1):
         train_logger = train(model, device,  # Train Loop
                              train_loader,
-                             optimizer, epoch,
+                             optimizer, criterion, epoch,
                              log_interval=100, writer=writer, logger=train_logger)
 
         test_logger, acc, loss = test(model, device,  # Evaluation Loop
-                                    test_loader, epoch,
+                                    test_loader, criterion, epoch,
                                     writer=writer, logger=test_logger)
         
         if acc > best_acc:

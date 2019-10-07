@@ -13,6 +13,7 @@ class VanillaACNN(nn.Module):
 
         super(VanillaACNN, self).__init__()
 
+
         # --------------------Features network------------------------#
 
         self.net1 = nn.Sequential()
@@ -37,10 +38,17 @@ class VanillaACNN(nn.Module):
                                                             stride=net2_strides[i]))
             self.net2.add_module(f'net2_relu{i}', nn.ReLU())
 
+        #-----------------------Grouped Conv-------------------------#
+
+        self.bn = nn.Sequential(
+            nn.BatchNorm2d(net2_channels[-1]),
+            nn.ReLU()
+        )
+
         # --------------------Classifier ---------------------------#
 
         self.fc = nn.Sequential()
-
+        
         num_layers3 = len(fc_units) - 1
         for i in range(num_layers3):
             self.fc.add_module(f'fc_linear{i}', nn.Linear(fc_units[i],
@@ -59,8 +67,7 @@ class VanillaACNN(nn.Module):
         """
         out1 = self.net1(X)
         out2 = self.net2(X)
-
-        out3 = grouped_conv(out1, out2)
-
-        out3 = self.fc(out3)
-        return out3
+        out = grouped_conv(out1, out2)
+        out = self.bn(out.view(out2.shape[0], -1, out.shape[2], out.shape[3]))  # Batchnorm and relu
+        out = self.fc(out.view(out2.shape[0], -1))
+        return out

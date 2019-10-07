@@ -41,7 +41,7 @@ def train(model: nn.Module, device,
         data, target = data.to(device), target.to(device)
 
         output = model(data)  # Forward Prop
-        loss = F.nll_loss(output, target)
+        loss = criterion(output, target)
 
         optimizer.zero_grad()
         loss.backward()
@@ -79,7 +79,7 @@ def train(model: nn.Module, device,
 
 
 def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader,
-         epoch, criterion, writer=None, logger=None, ):
+        criterion, epoch, writer=None, logger=None, ):
     """
     Performs evaluation on dataset
     :param criterion: Loss function used
@@ -104,7 +104,7 @@ def test(model: nn.Module, device, test_loader: torch.utils.data.DataLoader,
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
-            test_loss += F.nll_loss(output, target, reduction='sum').item()  # sum up batch loss
+            test_loss += criterion(output, target).item()
             pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
             correct += pred.eq(target.view_as(pred)).sum().item()
 
